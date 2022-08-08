@@ -1,1 +1,1 @@
-web: python manage.py runserver 0.0.0.0:\$PORT
+web: cd backend && gunicorn backend.wsgi:application --log-file -
