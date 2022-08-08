@@ -6,7 +6,6 @@ certifi==2022.6.15
 cffi==1.15.1
 chardet==4.0.0
 charset-normalizer==2.1.0
-chrome-gnome-shell==0.0.0
 click==8.0.4
 cryptography==3.3.1
 cupshelpers==1.0
