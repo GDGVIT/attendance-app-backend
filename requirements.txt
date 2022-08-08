@@ -26,6 +26,7 @@ djangorestframework==3.12.4
 fedora-third-party==0.10
 fros==1.1
 gpg==1.15.1
+gunicorn==20.1.0
 humanize==3.13.1
 idna==3.3
 langtable==0.0.58
