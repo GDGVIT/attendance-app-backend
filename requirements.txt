@@ -3,7 +3,6 @@ asgiref==3.5.2
 Beaker==1.10.0
 beautifulsoup4==4.11.0
 blivet
-blivet-gui
 Brlapi==0.8.4
 certifi==2022.6.15
 cffi==1.15.1
