@@ -4,7 +4,6 @@ from .models import ClubMember
 
 
 class ClubMemberSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = ClubMember
-        fields = ('name', 'phone', 'attendence', 'is_admin')
+        fields = ("name", "phone", "attendence", "is_admin")
