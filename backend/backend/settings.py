@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import django_on_heroku
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,7 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-h%o0+#$y$x614i$5+a0-k!x59!jd&me-i(l_qb0psvw229y08g"
+SECRET_KEY = "django-insecure-h%o0+\
+             #$y$x614i$5+a0-k!x59!jd&me-i(l_qb0psvw229y08g"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -80,10 +82,10 @@ DATABASES = {
         "ENGINE": "djongo",
         "NAME": "Cluster0",
         "CLIENT": {
-            "host": "mongodb+srv://lioncat:honk@cluster0.2lgaq4p.mongodb.net/?retryWrites=true&w=majority",
+            "host": "mongodb+srv://lioncat:honk@cluster0.2lgaq4p.\
+                    mongodb.net/?retryWrites=true&w=majority",
         },
-    }
-}
+    }}
 
 
 # Password validation
@@ -91,16 +93,20 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.\
+                password_validation.UserAttributeSimilarityValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": "django.contrib.auth.\
+                password_validation.MinimumLengthValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": "django.contrib.auth.\
+                password_validation.CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "django.contrib.auth.\
+                password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -124,10 +130,10 @@ STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
-REST_FRAMEWORK = {"DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema"}
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema"}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Configure Django App for Heroku.
-import django_on_heroku
 
 django_on_heroku.settings(locals())
