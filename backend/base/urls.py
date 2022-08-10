@@ -8,8 +8,7 @@ from . import views
 router = routers.DefaultRouter()
 router.register(r"members", views.ClubMemberViewSet)
 urlpatterns = [
-    path("api-auth/",
-         include("rest_framework.urls", namespace="rest_framework")),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("get_user/<int:phno>", views.get_user),
     path("new_user/<str:name>/<int:phno>", views.new_user),
     path(
