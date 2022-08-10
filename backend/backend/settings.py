@@ -85,8 +85,7 @@ DATABASES = {
         "ENGINE": "djongo",
         "NAME": "Cluster0",
         "CLIENT": {
-            "host": "mongodb+srv://lioncat:honk@cluster0.2lgaq4p.\
-                    mongodb.net/?retryWrites=true&w=majority",
+            "host": os.getenv("MONGO_URI"),
         },
     }
 }
