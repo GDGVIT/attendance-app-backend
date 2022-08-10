@@ -6,6 +6,7 @@ from rest_framework.response import Response
 # Create your views here.
 from . import models, serializers
 
+taking_attendence=False;
 
 class ClubMemberViewSet(viewsets.ModelViewSet):
     queryset = models.ClubMember.objects.all().order_by("id")
@@ -32,3 +33,25 @@ def new_user(request, name: str, phno: int):
         return Response(status=status.HTTP_201_CREATED)
     else:
         return Response(status=status.HTTP_409_CONFLICT)
+
+@api_view(["GET"])
+def take_attendence(request):
+    global taking_attendence
+    taking_attendence=not taking_attendence
+    return Response({"state":taking_attendence})
+
+@api_view(["GET"])
+def attendence_state(request):
+    return Response({"state":taking_attendence})
+
+@api_view(["GET"])
+def give_attendence(request,phno: int):
+    try:
+        user = models.ClubMember.objects.get(phone=phno)
+        user.attendence+=1
+        user.save()
+        s = serializers.ClubMemberSerializer(user)
+        return Response(s.data)
+    except models.ClubMember.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+

@@ -11,6 +11,9 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("get_user/<int:phno>", views.get_user),
     path("new_user/<str:name>/<int:phno>", views.new_user),
+    path("take_attendence/", views.take_attendence),
+    path("give_attendence/<int:phno>", views.give_attendence),
+    path("attendence_state/", views.attendence_state),
     path(
         "docs/",
         TemplateView.as_view(
