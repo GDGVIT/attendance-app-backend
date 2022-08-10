@@ -1,0 +1,182 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /members/:
+    get:
+      operationId: listClubMembers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClubMember'
+          description: ''
+      tags:
+      - members
+    post:
+      operationId: createClubMember
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubMember'
+          description: ''
+      tags:
+      - members
+  /members/{id}/:
+    get:
+      operationId: retrieveClubMember
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this club member.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubMember'
+          description: ''
+      tags:
+      - members
+    put:
+      operationId: updateClubMember
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this club member.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubMember'
+          description: ''
+      tags:
+      - members
+    patch:
+      operationId: partialUpdateClubMember
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this club member.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClubMember'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubMember'
+          description: ''
+      tags:
+      - members
+    delete:
+      operationId: destroyClubMember
+      description: ''
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this club member.
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - members
+  /get_user/{phno}:
+    get:
+      operationId: retrieveWrapped
+      description: ''
+      parameters:
+      - name: phno
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - get-user
+components:
+  schemas:
+    ClubMember:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        phone:
+          type: string
+          maxLength: 10
+        attendence:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        is_admin:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+      required:
+      - name
+      - phone
+      - attendence
