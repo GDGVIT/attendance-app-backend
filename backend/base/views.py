@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from geopy import distance
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 from . import models, serializers
 
 taking_attendence = False
+FOODYS = (12.968977, 79.158283)
 
 
 class ClubMemberViewSet(viewsets.ModelViewSet):
@@ -49,12 +51,25 @@ def attendence_state(request):
 
 
 @api_view(["GET"])
-def give_attendence(request, phno: int):
+def give_attendence(request, phno: int, lat: str, long: str):
     try:
-        user = models.ClubMember.objects.get(phone=phno)
-        user.attendence += 1
-        user.save()
-        s = serializers.ClubMemberSerializer(user)
-        return Response(s.data)
+        lat = float(lat)
+        long = float(long)
+        user_loc = (lat, long)
+        distance_meters = distance.distance(user_loc, FOODYS).meters
+        if distance_meters <= 50:
+            user = models.ClubMember.objects.get(phone=phno)
+            user.attendence += 1
+            user.save()
+            s = serializers.ClubMemberSerializer(user)
+            return Response(s.data)
+        else:
+            return Response(
+                {
+                    "error": "user not in range",
+                    "distance": distance_meters,
+                    "message": "seriously where even are you?!",
+                }
+            )
     except models.ClubMember.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)

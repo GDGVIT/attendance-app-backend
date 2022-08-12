@@ -12,7 +12,7 @@ urlpatterns = [
     path("get_user/<int:phno>", views.get_user),
     path("new_user/<str:name>/<int:phno>", views.new_user),
     path("take_attendence/", views.take_attendence),
-    path("give_attendence/<int:phno>", views.give_attendence),
+    path("give_attendence/<int:phno>/<str:lat>/<str:long>", views.give_attendence),
     path("attendence_state/", views.attendence_state),
     path(
         "docs/",
