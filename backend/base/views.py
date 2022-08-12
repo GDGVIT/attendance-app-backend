@@ -53,8 +53,8 @@ def attendence_state(request):
 @api_view(["GET"])
 def give_attendence(request, phno: int, lat: str, long: str):
     try:
-        latitude = float(lat)
-        longitude = float(long)
+        latitude:float = float(lat)
+        longitude:float = float(long)
         user_loc = (latitude, longitude)
         distance_meters = distance.distance(user_loc, FOODYS).meters
         if distance_meters <= 50:
