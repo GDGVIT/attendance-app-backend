@@ -53,9 +53,9 @@ def attendence_state(request):
 @api_view(["GET"])
 def give_attendence(request, phno: int, lat: str, long: str):
     try:
-        lat = float(lat)
-        long = float(long)
-        user_loc = (lat, long)
+        latitude = float(lat)
+        longitude = float(long)
+        user_loc = (latitude, longitude)
         distance_meters = distance.distance(user_loc, FOODYS).meters
         if distance_meters <= 50:
             user = models.ClubMember.objects.get(phone=phno)
