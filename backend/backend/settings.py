@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     "base",
     "rest_framework",
     "corsheaders",
-    #    "channels",
 ]
 
 MIDDLEWARE = [
@@ -80,18 +79,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "backend.wsgi.application"
-# ASGI_APPLICATION = "backend.asgi.application"
-# CHANNEL_LAYERS = {
-#    'default': {
-#        'BACKEND': 'asgi_redis.RedisChannelLayer',
-#        'CONFIG': {
-#            'hosts': 'need to add redis db',
-#        },
-#        'ROUTING': 'example_channels.routing.channel_routing',
-#    }
-# }
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
     "default": {
