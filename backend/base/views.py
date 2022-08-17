@@ -1,6 +1,6 @@
-from pyexpat import model
 from django.shortcuts import render
 from geopy import distance
+from pyexpat import model
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
@@ -11,17 +11,21 @@ from . import models, serializers
 taking_attendence = False
 FOODYS = (12.968977, 79.158283)
 
+
 class ClubViewSet(viewsets.ModelViewSet):
-    queryset=models.Club.objects.all()
-    serializer_class=serializers.ClubSerializer
+    queryset = models.Club.objects.all()
+    serializer_class = serializers.ClubSerializer
+
 
 class ClubMemberViewSet(viewsets.ModelViewSet):
     queryset = models.ClubMember.objects.all().order_by("id")
     serializer_class = serializers.ClubMemberSerializer
 
+
 class StateVariableViewSet(viewsets.ModelViewSet):
-    queryset=models.StateVariable.objects.all()
-    serializer_class=serializers.StateVariableSerializer
+    queryset = models.StateVariable.objects.all()
+    serializer_class = serializers.StateVariableSerializer
+
 
 @api_view(["GET"])
 def get_user(request, phno: int):
