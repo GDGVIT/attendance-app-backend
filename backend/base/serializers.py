@@ -25,4 +25,4 @@ class StateVariableSerializer(serializers.ModelSerializer):
     # club_name=serializers.StringRelatedField(many=True)
     class Meta:
         model = StateVariable
-        fields = ("take_attendence","club","latitude","longitude")
+        fields = ("take_attendence", "club", "latitude", "longitude")

@@ -37,8 +37,8 @@ def get_user(request, phno: int):
 
 
 @api_view(["PUT"])
-def new_user(request,club_name:str, name: str, phno: int):
-    club=models.Club.objects.get(name=club_name)
+def new_user(request, club_name: str, name: str, phno: int):
+    club = models.Club.objects.get(name=club_name)
     user, created = models.ClubMember.objects.get_or_create(
         name=name, phone=phno, attendence=0, is_admin=0, club=club
     )
@@ -50,39 +50,39 @@ def new_user(request,club_name:str, name: str, phno: int):
 
 
 @api_view(["GET"])
-def take_attendence(request,club_name:str,lat:str,long:str):
-    club=models.Club.objects.get(name=club_name)
-    
-    state,created=models.StateVariable.objects.get_or_create(club=club)
+def take_attendence(request, club_name: str, lat: str, long: str):
+    club = models.Club.objects.get(name=club_name)
+
+    state, created = models.StateVariable.objects.get_or_create(club=club)
     if created:
-        state.take_attendence=True
+        state.take_attendence = True
     else:
-        state.take_attendence=not state.take_attendence;
-    state.latitude=lat
-    state.longitude=long
+        state.take_attendence = not state.take_attendence
+    state.latitude = lat
+    state.longitude = long
     state.save()
     return Response({"state": state.take_attendence})
 
 
 @api_view(["GET"])
-def attendence_state(request,club_name:str):
-    club=models.Club.objects.get(name=club_name)
-    state=models.StateVariable.objects.get(club=club)
+def attendence_state(request, club_name: str):
+    club = models.Club.objects.get(name=club_name)
+    state = models.StateVariable.objects.get(club=club)
     return Response({"state": state.take_attendence})
 
 
 @api_view(["GET"])
-def give_attendence(request,club_name:str, phno: int, lat: str, long: str):
+def give_attendence(request, club_name: str, phno: int, lat: str, long: str):
     try:
-        club=models.Club.objects.get(name=club_name)
-        state=models.StateVariable.objects.get(club=club)
+        club = models.Club.objects.get(name=club_name)
+        state = models.StateVariable.objects.get(club=club)
         latitude = float(lat)
         longitude = float(long)
         user_loc = (latitude, longitude)
-        location=(float(state.latitude),float(state.longitude))
+        location = (float(state.latitude), float(state.longitude))
         distance_meters = distance.distance(user_loc, location).meters
         if distance_meters <= 50:
-            user = models.ClubMember.objects.get(phone=phno,club=club)
+            user = models.ClubMember.objects.get(phone=phno, club=club)
             user.attendence += 1
             user.save()
             s = serializers.ClubMemberSerializer(user)
