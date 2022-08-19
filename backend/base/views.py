@@ -8,7 +8,7 @@ from rest_framework.response import Response
 # Create your views here.
 from . import models, serializers
 
-FOODYS = (12.968977, 79.158283)
+# FOODYS = (12.968977, 79.158283)
 
 
 class ClubViewSet(viewsets.ModelViewSet):
