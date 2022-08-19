@@ -7,7 +7,7 @@ from .models import Club, ClubMember, StateVariable
 
 class ClubSerializer(serializers.ModelSerializer):
     members = serializers.StringRelatedField(many=True)
-    states = serializers.StringRelatedField(many=True)
+    states = serializers.StringRelatedField()
 
     class Meta:
         model = Club
@@ -25,4 +25,4 @@ class StateVariableSerializer(serializers.ModelSerializer):
     # club_name=serializers.StringRelatedField(many=True)
     class Meta:
         model = StateVariable
-        fields = ("take_attendence", "club")
+        fields = ("take_attendence","club","latitude","longitude")

@@ -21,8 +21,10 @@ class ClubMember(models.Model):
 
 
 class StateVariable(models.Model):
-    club = models.ForeignKey(Club, related_name="states", on_delete=models.CASCADE)
+    #_id=models.BigAutoField(verbose_name="ID",primary_key=True,null=False)
+    club = models.OneToOneField(Club,primary_key=True, related_name="states", on_delete=models.CASCADE)
     take_attendence = models.BooleanField()
-
+    latitude=models.CharField(max_length=200)
+    longitude=models.CharField(max_length=200)
     def __str__(self) -> str:
         return f"take_attendence:{self.take_attendence}"
