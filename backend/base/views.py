@@ -1,16 +1,18 @@
+import firebase_admin
 from django.shortcuts import render
+from firebase_admin import auth
 from geopy import distance
 from pyexpat import model
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
-import firebase_admin
-from firebase_admin import auth
+
 # Create your views here.
 from . import models, serializers
 
-auth_app=firebase_admin.initialize_app()
+auth_app = firebase_admin.initialize_app()
 print(auth_app.name)
+
 
 class ClubViewSet(viewsets.ModelViewSet):
     queryset = models.Club.objects.all()
@@ -28,12 +30,12 @@ class StateVariableViewSet(viewsets.ModelViewSet):
 
 
 @api_view(["GET"])
-def get_user(request,token:str):
-    decoded_token=auth.verify_id_token(token)
-    uid=decoded_token['uid']
+def get_user(request, token: str):
+    decoded_token = auth.verify_id_token(token)
+    uid = decoded_token["uid"]
     try:
-        u=auth_app.auth().get_user(uid)
-        phno=u.phone_number
+        u = auth_app.auth().get_user(uid)
+        phno = u.phone_number
         print(phno)
         user = models.ClubMember.objects.get(phone=phno)
         s = serializers.ClubMemberSerializer(user)
