@@ -14,7 +14,7 @@ router.register(r"state", views.StateVariableViewSet)
 
 urlpatterns = [
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    path("get_user/<int:phno>", views.get_user),
+    path("get_user/<str:token>", views.get_user),
     path("new_user/<str:club_name>/<str:name>/<int:phno>", views.new_user),
     path("take_attendence/<str:club_name>/<str:lat>/<str:long>", views.take_attendence),
     path("give_attendence/<int:phno>/<str:lat>/<str:long>", views.give_attendence),
