@@ -15,6 +15,7 @@ class ClubMember(models.Model):
     phone = models.CharField(max_length=10, null=False, blank=False)
     attendence = models.IntegerField(null=False, blank=False)
     is_admin = models.IntegerField(default=False)
+    last_date = models.CharField(max_length=200)
 
     def __str__(self) -> str:
         return self.phone

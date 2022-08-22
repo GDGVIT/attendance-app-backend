@@ -18,7 +18,7 @@ class ClubMemberSerializer(serializers.ModelSerializer):
     # club=serializers.StringRelatedField(many=True)
     class Meta:
         model = ClubMember
-        fields = ("name", "phone", "attendence", "is_admin", "club")
+        fields = ("name", "phone", "attendence", "last_date", "is_admin", "club")
 
 
 class StateVariableSerializer(serializers.ModelSerializer):

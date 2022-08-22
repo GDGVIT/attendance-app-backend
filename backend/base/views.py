@@ -53,7 +53,7 @@ def get_user(request):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(["PUT"])
+@api_view(["POST"])
 def new_user(request):
     data = request.data
     print(data)
@@ -75,11 +75,24 @@ def new_user(request):
         return Response(status=status.HTTP_409_CONFLICT)
 
 
-@api_view(["GET"])
-def take_attendence(request, club_name: str, lat: str, long: str):
+@api_view(["POST"])
+def take_attendence(request):
+    data = request.data
+    print(data)
+    token = data["token"]
+    club_name = data["club_name"]
+    lat = data["lat"]
+    long = data["long"]
     club = models.Club.objects.get(name=club_name)
-
+    decoded_token = auth.verify_id_token(token)
+    uid = decoded_token["uid"]
+    u = auth.get_user(uid)
+    phno = u.phone_number
+    user = models.ClubMember.objects.get(phone=phno, club=club)
+    if user.is_admin != 1:
+        return Response(status=status.HTTP_403_FORBIDDEN)
     state, created = models.StateVariable.objects.get_or_create(club=club)
+
     if created:
         state.take_attendence = True
     else:
@@ -97,11 +110,18 @@ def attendence_state(request, club_name: str):
     return Response({"state": state.take_attendence})
 
 
-@api_view(["GET"])
-def give_attendence(request, club_name: str, token: str, lat: str, long: str):
+@api_view(["POST"])
+def give_attendence(request):
+    data = request.data
+    print(data)
+    token = data["token"]
+    club_name = data["club_name"]
+    lat = data["lat"]
+    long = data["long"]
+    utc = data["utc"]
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
-    u = auth_app.auth().get_user(uid)
+    u = auth.get_user(uid)
     phno = u.phone_number
     try:
         club = models.Club.objects.get(name=club_name)
@@ -114,6 +134,7 @@ def give_attendence(request, club_name: str, token: str, lat: str, long: str):
         if distance_meters <= 50:
             user = models.ClubMember.objects.get(phone=phno, club=club)
             user.attendence += 1
+            user.last_date = utc
             user.save()
             s = serializers.ClubMemberSerializer(user)
             return Response(s.data)
