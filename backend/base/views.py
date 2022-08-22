@@ -29,15 +29,24 @@ class StateVariableViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.StateVariableSerializer
 
 
-@api_view(["GET"])
-def get_user(request, token: str):
+@api_view(["POST"])
+def get_user(request):
+    data=request.data
+    #return Response(status=status.HTTP_100_CONTINUE)
+    token=data["token"]
+    club_name=data["club_name"]
+    print(club_name)
+    #return Response(status=status.HTTP_100_CONTINUE)
+    club=models.Club.objects.get(name=club_name)
+    #return Response(status=status.HTTP_100_CONTINUE)
+#
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     try:
-        u = auth_app.auth().get_user(uid)
+        u = auth.get_user(uid)
         phno = u.phone_number
         print(phno)
-        user = models.ClubMember.objects.get(phone=phno)
+        user = models.ClubMember.objects.get(club=club,phone=phno)
         s = serializers.ClubMemberSerializer(user)
         return Response(s.data)
     except models.ClubMember.DoesNotExist:
@@ -45,7 +54,16 @@ def get_user(request, token: str):
 
 
 @api_view(["PUT"])
-def new_user(request, club_name: str, name: str, phno: int):
+def new_user(request):
+    data=request.data
+    print(data)
+    token=data["token"]
+    club_name=data["club_name"]
+    decoded_token = auth.verify_id_token(token)
+    uid = decoded_token["uid"]
+    u = auth.get_user(uid)
+    phno = u.phone_number
+    name = u.display_name
     club = models.Club.objects.get(name=club_name)
     user, created = models.ClubMember.objects.get_or_create(
         name=name, phone=phno, attendence=0, is_admin=0, club=club
@@ -80,7 +98,11 @@ def attendence_state(request, club_name: str):
 
 
 @api_view(["GET"])
-def give_attendence(request, club_name: str, phno: int, lat: str, long: str):
+def give_attendence(request, club_name: str, token: str, lat: str, long: str):
+    decoded_token = auth.verify_id_token(token)
+    uid = decoded_token["uid"]
+    u = auth_app.auth().get_user(uid)
+    phno = u.phone_number
     try:
         club = models.Club.objects.get(name=club_name)
         state = models.StateVariable.objects.get(club=club)
