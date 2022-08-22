@@ -31,22 +31,22 @@ class StateVariableViewSet(viewsets.ModelViewSet):
 
 @api_view(["POST"])
 def get_user(request):
-    data=request.data
-    #return Response(status=status.HTTP_100_CONTINUE)
-    token=data["token"]
-    club_name=data["club_name"]
+    data = request.data
+    # return Response(status=status.HTTP_100_CONTINUE)
+    token = data["token"]
+    club_name = data["club_name"]
     print(club_name)
-    #return Response(status=status.HTTP_100_CONTINUE)
-    club=models.Club.objects.get(name=club_name)
-    #return Response(status=status.HTTP_100_CONTINUE)
-#
+    # return Response(status=status.HTTP_100_CONTINUE)
+    club = models.Club.objects.get(name=club_name)
+    # return Response(status=status.HTTP_100_CONTINUE)
+    #
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     try:
         u = auth.get_user(uid)
         phno = u.phone_number
         print(phno)
-        user = models.ClubMember.objects.get(club=club,phone=phno)
+        user = models.ClubMember.objects.get(club=club, phone=phno)
         s = serializers.ClubMemberSerializer(user)
         return Response(s.data)
     except models.ClubMember.DoesNotExist:
@@ -55,10 +55,10 @@ def get_user(request):
 
 @api_view(["PUT"])
 def new_user(request):
-    data=request.data
+    data = request.data
     print(data)
-    token=data["token"]
-    club_name=data["club_name"]
+    token = data["token"]
+    club_name = data["club_name"]
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     u = auth.get_user(uid)
