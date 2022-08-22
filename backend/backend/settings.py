@@ -58,13 +58,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 ]
 
-CORS_ORIGIN_ALLOW_ALL = False
-CORS_ORIGIN_WHITELIST = (
-  'http://localhost:8000',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'https://nock-attendance.netlify.app'
-)
+CORS_ORIGIN_ALLOW_ALL = True
 ROOT_URLCONF = "backend.urls"
 
 TEMPLATES = [
