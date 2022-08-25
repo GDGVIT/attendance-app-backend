@@ -1,10 +1,8 @@
 import firebase_admin
-from django.shortcuts import render
 from firebase_admin import auth
 from geopy import distance
-from pyexpat import model
 from rest_framework import status, viewsets
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 # Create your views here.
@@ -44,9 +42,10 @@ def get_user(request):
     uid = decoded_token["uid"]
     try:
         u = auth.get_user(uid)
-        phno = u.phone_number
-        print(phno)
-        user = models.ClubMember.objects.get(club=club, phone=phno)
+        #phno = u.phone_number
+        email=u.email
+        #print(#phno)
+        user = models.ClubMember.objects.get(club=club, email=email)
         s = serializers.ClubMemberSerializer(user)
         return Response(s.data)
     except models.ClubMember.DoesNotExist:
@@ -62,11 +61,12 @@ def new_user(request):
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     u = auth.get_user(uid)
-    phno = u.phone_number
+    #phno = u.phone_number
+    email=u.email
     name = u.display_name
     club = models.Club.objects.get(name=club_name)
     user, created = models.ClubMember.objects.get_or_create(
-        name=name, phone=phno, attendence=0, is_admin=0, club=club
+        name=name, email=email, attendence=0, is_admin=0, club=club
     )
     if created:
         user.save()
@@ -87,8 +87,9 @@ def take_attendence(request):
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     u = auth.get_user(uid)
-    phno = u.phone_number
-    user = models.ClubMember.objects.get(phone=phno, club=club)
+    #phno = u.phone_number
+    email=u.email
+    user = models.ClubMember.objects.get(email=email, club=club)
     if user.is_admin != 1:
         return Response(status=status.HTTP_403_FORBIDDEN)
     state, created = models.StateVariable.objects.get_or_create(club=club)
@@ -122,7 +123,8 @@ def give_attendence(request):
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     u = auth.get_user(uid)
-    phno = u.phone_number
+    #phno = u.phone_number
+    email=u.email
     try:
         club = models.Club.objects.get(name=club_name)
         state = models.StateVariable.objects.get(club=club)
@@ -132,7 +134,7 @@ def give_attendence(request):
         location = (float(state.latitude), float(state.longitude))
         distance_meters = distance.distance(user_loc, location).meters
         if distance_meters <= 50:
-            user = models.ClubMember.objects.get(phone=phno, club=club)
+            user = models.ClubMember.objects.get(email=email, club=club)
             user.attendence += 1
             user.last_date = utc
             user.save()

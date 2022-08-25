@@ -12,7 +12,8 @@ class Club(models.Model):
 class ClubMember(models.Model):
     club = models.ForeignKey(Club, related_name="members", on_delete=models.CASCADE)
     name = models.CharField(max_length=200, null=False, blank=False)
-    phone = models.CharField(max_length=10, null=False, blank=False)
+    phone = models.CharField(max_length=10, null=True, blank=True)
+    email=models.EmailField(null=False, blank=False)
     attendence = models.IntegerField(null=False, blank=False)
     is_admin = models.IntegerField(default=False)
     last_date = models.CharField(max_length=200)
