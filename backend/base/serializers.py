@@ -11,7 +11,7 @@ class ClubSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Club
-        fields = ("name", "members", "states")
+        fields = ("name", "states", "members")
 
 
 class ClubMemberSerializer(serializers.ModelSerializer):

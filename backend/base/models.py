@@ -19,7 +19,7 @@ class ClubMember(models.Model):
     last_date = models.CharField(max_length=200)
 
     def __str__(self) -> str:
-        return self.phone
+        return self.email
 
 
 class StateVariable(models.Model):
