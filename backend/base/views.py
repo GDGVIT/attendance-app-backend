@@ -42,9 +42,9 @@ def get_user(request):
     uid = decoded_token["uid"]
     try:
         u = auth.get_user(uid)
-        #phno = u.phone_number
-        email=u.email
-        #print(#phno)
+        # phno = u.phone_number
+        email = u.email
+        # print(#phno)
         user = models.ClubMember.objects.get(club=club, email=email)
         s = serializers.ClubMemberSerializer(user)
         return Response(s.data)
@@ -61,8 +61,8 @@ def new_user(request):
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     u = auth.get_user(uid)
-    #phno = u.phone_number
-    email=u.email
+    # phno = u.phone_number
+    email = u.email
     name = u.display_name
     club = models.Club.objects.get(name=club_name)
     user, created = models.ClubMember.objects.get_or_create(
@@ -87,8 +87,8 @@ def take_attendence(request):
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     u = auth.get_user(uid)
-    #phno = u.phone_number
-    email=u.email
+    # phno = u.phone_number
+    email = u.email
     user = models.ClubMember.objects.get(email=email, club=club)
     if user.is_admin != 1:
         return Response(status=status.HTTP_403_FORBIDDEN)
@@ -123,8 +123,8 @@ def give_attendence(request):
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     u = auth.get_user(uid)
-    #phno = u.phone_number
-    email=u.email
+    # phno = u.phone_number
+    email = u.email
     try:
         club = models.Club.objects.get(name=club_name)
         state = models.StateVariable.objects.get(club=club)
