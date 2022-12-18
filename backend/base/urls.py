@@ -6,11 +6,19 @@ from rest_framework.schemas import get_schema_view
 from . import views
 
 router = routers.DefaultRouter()
+
 router.register(r"members", views.ClubMemberViewSet)
+router.register(r"clubs", views.ClubViewSet)
+router.register(r"state", views.StateVariableViewSet)
+
+
 urlpatterns = [
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    path("get_user/<int:phno>", views.get_user),
-    path("new_user/<str:name>/<int:phno>", views.new_user),
+    path("get_user/", views.get_user),
+    path("new_user/", views.new_user),
+    path("take_attendence/", views.take_attendence),
+    path("give_attendence/", views.give_attendence),
+    path("attendence_state/<str:club_name>", views.attendence_state),
     path(
         "docs/",
         TemplateView.as_view(

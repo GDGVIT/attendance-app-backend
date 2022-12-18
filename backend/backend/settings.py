@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "base",
     "rest_framework",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -54,8 +55,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
+CORS_ORIGIN_ALLOW_ALL = True
 ROOT_URLCONF = "backend.urls"
 
 TEMPLATES = [
@@ -76,17 +79,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "djongo",
         "NAME": "Cluster0",
         "CLIENT": {
-            "host": "mongodb+srv://lioncat:honk@cluster0.2lgaq4p.\
-                    mongodb.net/?retryWrites=true&w=majority",
+            "host": os.getenv("MONGO_URI"),
         },
     }
 }
