@@ -1,3 +1,6 @@
+import csv
+from io import TextIOWrapper
+
 import firebase_admin
 from firebase_admin import auth
 from geopy import distance
@@ -76,6 +79,25 @@ def new_user(request):
 
 
 @api_view(["POST"])
+def new_user_batch(request):
+    f = request.FILES.get("file")
+    f = TextIOWrapper(f.file, encoding="utf-8")
+    reader = csv.reader(f)
+    for row in reader:
+        name = row[0]
+        email = row[1]
+        club_name = row[2]
+        phonenumber = row[3]
+        club = models.Club.objects.get(name=club_name)
+        user, created = models.ClubMember.objects.get_or_create(
+            name=name, email=email,phone=phonenumber, attendence=0, is_admin=0, club=club
+        )
+        if created:
+            user.save()
+    return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
 def take_attendence(request):
     data = request.data
     print(data)
@@ -123,7 +145,6 @@ def give_attendence(request):
     decoded_token = auth.verify_id_token(token)
     uid = decoded_token["uid"]
     u = auth.get_user(uid)
-    # phno = u.phone_number
     email = u.email
     try:
         club = models.Club.objects.get(name=club_name)
