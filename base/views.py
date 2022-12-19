@@ -90,7 +90,12 @@ def new_user_batch(request):
         phonenumber = row[3]
         club = models.Club.objects.get(name=club_name)
         user, created = models.ClubMember.objects.get_or_create(
-            name=name, email=email,phone=phonenumber, attendence=0, is_admin=0, club=club
+            name=name,
+            email=email,
+            phone=phonenumber,
+            attendence=0,
+            is_admin=0,
+            club=club,
         )
         if created:
             user.save()
