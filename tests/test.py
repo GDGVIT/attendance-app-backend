@@ -1,6 +1,5 @@
 import requests
 
-
 with open("test.csv") as f:
     f = f.read()
     files = {"file": f}
