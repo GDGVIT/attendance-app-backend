@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/GDGVIT/attendance-app-backend/infra/database"
+	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -16,6 +17,7 @@ func GetData(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Data not found"})
 		return
 	}
+	logger.Infof("Data: %v\n", example)
 	ctx.JSON(http.StatusOK, &example)
 
 }

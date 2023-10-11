@@ -1,11 +1,12 @@
 module github.com/GDGVIT/attendance-app-backend
 
-go 1.17
+go 1.19
 
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/viper v1.10.1
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/postgres v1.3.1
 	gorm.io/gorm v1.23.1
 	gorm.io/plugin/dbresolver v1.1.0

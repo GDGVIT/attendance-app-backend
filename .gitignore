@@ -18,3 +18,8 @@
 vendor/
 .vscode/
 tmp/
+
+app_logs/
+
+# Logs
+*.log
