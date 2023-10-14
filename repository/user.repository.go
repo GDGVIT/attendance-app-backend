@@ -67,3 +67,17 @@ func (ur *UserRepository) SaveUser(user models.User) error {
 	}
 	return nil
 }
+
+// DeleteUserByID deletes a user by their ID
+func (ur *UserRepository) DeleteUserByID(userID uint) error {
+	var user models.User
+	if err := ur.db.First(&user, userID).Error; err != nil {
+		return err
+	}
+
+	if err := ur.db.Unscoped().Delete(&user).Error; err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -96,14 +96,14 @@ func (uc *UserController) Login(c *gin.Context) {
 
 	token, user, err := auth.LoginCheck(user.Email, user.Password)
 
-	if !user.Verified {
-		c.JSON(http.StatusForbidden, gin.H{"error": "unverified", "message": "Please verify your email before logging in."})
-		return
-	}
-
 	if err != nil {
 		println(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": "credentials-error", "message": "The email or password is not correct"})
+		return
+	}
+
+	if !user.Verified {
+		c.JSON(http.StatusForbidden, gin.H{"error": "unverified", "message": "Please verify your email before logging in."})
 		return
 	}
 
@@ -335,4 +335,50 @@ func (uc *UserController) RequestDeletion(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Deletion request submitted"})
+}
+
+func (uc *UserController) DeleteAccount(c *gin.Context) {
+	useremail := c.Query("email")
+	otp := c.Query("otp")
+
+	// Fetch the forgot password entry by email
+	deletionEntry, err := uc.deletionRepo.GetDeletionConfirmationByEmail(useremail)
+	if err != nil {
+		logger.Errorf("Error while verifying deletion: %v", err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"error": "verification", "message": "Invalid verification. Please check email link again."})
+		return
+	}
+
+	if deletionEntry.ValidTill.Before(time.Now()) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "otp-expiry", "message": "Password OTP has expired, please request account deletion again."})
+		return
+	}
+
+	if deletionEntry.OTP == otp {
+		// Fetch the user by email
+		user, err := uc.userRepo.GetUserByEmail(useremail)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user-fetch", "message": "Failed to fetch user"})
+			return
+		}
+
+		err = uc.userRepo.DeleteUserByID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Failed to delete user."})
+			return
+		}
+
+		email.GenericSendMail("Account Deleted", "Your account on GDSC Attendance App has been deleted.", user.Email, user.Name)
+
+		// Delete the forgot password entry
+		err = uc.deletionRepo.DeleteDeletionConfirmationByEmail(useremail)
+		if err != nil {
+			logger.Errorf("Error while deleting deletion entry: " + err.Error())
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully."})
+		logger.Infof("Account deleted")
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "verification", "message": "Invalid verification. Account not deleted."})
+	}
 }

@@ -55,5 +55,8 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Send account deletion request
 		auth.GET("/request-delete-account", middleware.BaseAuthMiddleware(), userController.RequestDeletion)
+
+		// Delete account
+		auth.DELETE("/delete-account", middleware.BaseAuthMiddleware(), userController.DeleteAccount)
 	}
 }
