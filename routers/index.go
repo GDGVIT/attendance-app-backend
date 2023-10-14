@@ -24,6 +24,14 @@ func RegisterRoutes(route *gin.Engine) {
 		example.PATCH("/:pid", controllers.Update)
 	}
 
-	//Add All route
-	//TestRoutes(route)
+	auth := v1.Group("/auth") // Create an /auth/ group
+	{
+		userController := controllers.NewUserController() // Create an instance of the UserController
+
+		// Define the user registration route
+		auth.POST("/register", userController.RegisterUser)
+
+		// Define the user login route
+		auth.POST("/login", userController.Login)
+	}
 }

@@ -17,7 +17,7 @@ func GetData(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Data not found"})
 		return
 	}
-	logger.Infof("Data: %v\n", example)
+	logger.Infof("Data: %v", example)
 	ctx.JSON(http.StatusOK, &example)
 
 }
