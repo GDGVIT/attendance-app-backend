@@ -266,3 +266,48 @@ func (uc *UserController) SetNewPassword(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": "Invalid verification. Password not updated."})
 	}
 }
+
+// ResetPasswordController handles the reset password by logged in user
+func (uc *UserController) ResetPassword(c *gin.Context) {
+	var resetPasswordInput struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+
+	if err := c.ShouldBindJSON(&resetPasswordInput); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	user, _ := c.Get("user")
+	currentUser := user.(*models.User)
+
+	if err := auth.VerifyPassword(resetPasswordInput.OldPassword, currentUser.Password); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect current password"})
+		email.GenericSendMail("Password Reset Attempt", "Somebody attempted to change your password on Bookstore. Secure your account if this was not you.", currentUser.Email, currentUser.Name)
+		return
+	}
+
+	if !auth.CheckPasswordStrength(resetPasswordInput.NewPassword) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password not strong enough."})
+		return
+	}
+	currentUser.Password = resetPasswordInput.NewPassword
+	currentUser.HashPassword()
+
+	err := uc.userRepo.SaveUser(*currentUser)
+	if err != nil {
+		logger.Errorf("Update Password failed: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		return
+	}
+
+	email.GenericSendMail("Password Reset Successfully", "Your password for Bookstore was changed. Secure your account if this was not you.", currentUser.Email, currentUser.Name)
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
+func (uc *UserController) TestAuth(c *gin.Context) {
+	user, _ := c.Get("user")
+	currentUser := user.(*models.User)
+	c.JSON(http.StatusOK, gin.H{"message": "Authenticated as " + currentUser.Name})
+}

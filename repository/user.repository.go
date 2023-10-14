@@ -36,6 +36,15 @@ func (ur *UserRepository) GetUserByEmail(email string) (models.User, error) {
 	return user, nil
 }
 
+// GetUserByID fetches a user by their ID
+func (ur *UserRepository) GetUserByID(userID uint) (models.User, error) {
+	var user models.User
+	if err := ur.db.First(&user, userID).Error; err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
 // VerifyUserEmail verifies a user's email by updating the verification status
 func (ur *UserRepository) VerifyUserEmail(email string) error {
 	var user models.User

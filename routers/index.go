@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/GDGVIT/attendance-app-backend/controllers"
+	"github.com/GDGVIT/attendance-app-backend/routers/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,5 +46,11 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Set forgotten password
 		auth.POST("/set-forgotten-password", userController.SetNewPassword)
+
+		// Test baseauth middleware
+		auth.GET("/test-auth", middleware.BaseAuthMiddleware(), userController.TestAuth)
+
+		// Reset password by logged in user
+		auth.POST("/reset-password", middleware.BaseAuthMiddleware(), userController.ResetPassword)
 	}
 }
