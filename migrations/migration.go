@@ -13,6 +13,7 @@ func Migrate() {
 		&models.User{},
 		&models.VerificationEntry{},
 		&models.ForgotPassword{},
+		&models.DeletionConfirmation{},
 	}
 	err := database.DB.AutoMigrate(migrationModels...)
 	if err != nil {

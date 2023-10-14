@@ -111,23 +111,28 @@ func SendRegistrationMail(subject string, content string, toEmail string, userID
 	return nil
 }
 
-// func SendDeletionMail(toEmail string, userID uint, userName string) {
-// 	otp := ""
-// 	otp = GenerateOTP(6)
-// 	confirmationURL := ""
-// 	confirmationURL += "http://bookstore.anrdhmshr.tech/delete-account?email=" + toEmail + "&otp=" + otp
-// 	content := "A request for the deletion of the bookstore account associated with your user has been made. If this was not you, please change your password. Otherwise, click on this link to confirm account deletion: " + confirmationURL + " . This link will be active for 3 minutes."
-// 	subject := "Request for account deletion."
+func SendDeletionMail(toEmail string, userID uint, userName string) error {
+	otp := ""
+	otp = GenerateOTP(6)
+	confirmationURL := ""
+	confirmationURL += "http://bookstore.anrdhmshr.tech/delete-account?email=" + toEmail + "&otp=" + otp
+	content := "A request for the deletion of the bookstore account associated with your user has been made. If this was not you, please change your password. Otherwise, click on this link to confirm account deletion: " + confirmationURL + " . This link will be active for 3 minutes."
+	subject := "Request for account deletion."
 
-// 	GenericSendMail(subject, content, toEmail, userName)
+	err := GenericSendMail(subject, content, toEmail, userName)
+	if err != nil {
+		return err
+	}
 
-// 	entry := models.DeletionConfirmation{
-// 		Email:     toEmail,
-// 		OTP:       otp,
-// 		ValidTill: time.Now().Add(3 * time.Minute),
-// 	}
-// 	database.DB.Create(&entry)
-// }
+	entry := models.DeletionConfirmation{
+		Email:     toEmail,
+		OTP:       otp,
+		ValidTill: time.Now().Add(3 * time.Minute),
+	}
+	deletionRepo := repository.NewDeletionConfirmationRepository()
+	deletionRepo.CreateDeletionConfirmation(entry)
+	return nil
+}
 
 func SendForgotPasswordMail(toEmail string, userID uint, userName string) error {
 	otp := ""

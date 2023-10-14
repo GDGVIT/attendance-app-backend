@@ -13,16 +13,18 @@ import (
 )
 
 type UserController struct {
-	userRepo   *repository.UserRepository
-	forgotRepo *repository.ForgotPasswordRepository
-	verifRepo  *repository.VerificationEntryRepository
+	userRepo     *repository.UserRepository
+	forgotRepo   *repository.ForgotPasswordRepository
+	verifRepo    *repository.VerificationEntryRepository
+	deletionRepo *repository.DeletionConfirmationRepository
 }
 
 func NewUserController() *UserController {
 	userRepo := repository.NewUserRepository()
 	forgotRepo := repository.NewForgotPasswordRepository()
 	verifRepo := repository.NewVerificationEntryRepository()
-	return &UserController{userRepo, forgotRepo, verifRepo}
+	deletionRepo := repository.NewDeletionConfirmationRepository()
+	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo}
 }
 
 // RegisterUser handles user registration
@@ -306,8 +308,31 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
 }
 
+// TestAuth is a test function to check if the auth middleware is working
 func (uc *UserController) TestAuth(c *gin.Context) {
 	user, _ := c.Get("user")
 	currentUser := user.(*models.User)
 	c.JSON(http.StatusOK, gin.H{"message": "Authenticated as " + currentUser.Name})
+}
+
+func (uc *UserController) RequestDeletion(c *gin.Context) {
+	user, _ := c.Get("user")
+	currentUser := user.(*models.User)
+
+	// Check if a deletion confirmation record already exists for the user's email, and remove it
+	err := uc.deletionRepo.DeleteDeletionConfirmationByEmail(currentUser.Email)
+	if err != nil {
+		logger.Errorf("Error while removing past deletion req: %v", err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"error": "verification", "message": "Error while removing past deletion request."})
+		return
+	}
+
+	// Send deletion email
+	err = email.SendDeletionMail(currentUser.Email, currentUser.ID, currentUser.Name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "mail", "message": "Error in sending email."})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Deletion request submitted"})
 }

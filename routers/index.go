@@ -52,5 +52,8 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Reset password by logged in user
 		auth.POST("/reset-password", middleware.BaseAuthMiddleware(), userController.ResetPassword)
+
+		// Send account deletion request
+		auth.GET("/request-delete-account", middleware.BaseAuthMiddleware(), userController.RequestDeletion)
 	}
 }
