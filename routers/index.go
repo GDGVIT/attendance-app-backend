@@ -39,5 +39,11 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Request another verification email
 		auth.GET("/request-verification", userController.RequestVerificationAgain)
+
+		// Send forgot password request
+		auth.GET("/forgot-password", userController.ForgotPasswordRequest)
+
+		// Set forgotten password
+		auth.POST("/set-forgotten-password", userController.SetNewPassword)
 	}
 }

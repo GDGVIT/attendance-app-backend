@@ -50,3 +50,11 @@ func (ur *UserRepository) VerifyUserEmail(email string) error {
 
 	return nil
 }
+
+// SaveUser saves user model
+func (ur *UserRepository) SaveUser(user models.User) error {
+	if err := ur.db.Save(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}

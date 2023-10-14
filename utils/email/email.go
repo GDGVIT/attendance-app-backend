@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/big"
 	"net/http"
+	"time"
 
 	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
@@ -128,20 +129,25 @@ func SendRegistrationMail(subject string, content string, toEmail string, userID
 // 	database.DB.Create(&entry)
 // }
 
-// func SendForgotPasswordMail(toEmail string, userID uint, userName string) {
-// 	otp := ""
-// 	otp = GenerateOTP(6)
-// 	verificationURL := ""
-// 	verificationURL += "http://bookstore.anrdhmshr.tech/set-forgotten-password?email=" + toEmail + "&otp=" + otp
-// 	content := "A forgot password request was made for the email associated with your account. If this was not you, feel free to ignore this email. Otherwise, click on this link to post your new password: " + verificationURL + " . This link will be active for 3 minutes."
-// 	subject := "Forgot Password."
+func SendForgotPasswordMail(toEmail string, userID uint, userName string) error {
+	otp := ""
+	otp = GenerateOTP(6)
+	verificationURL := ""
+	verificationURL += "http://bookstore.anrdhmshr.tech/set-forgotten-password?email=" + toEmail + "&otp=" + otp
+	content := "A forgot password request was made for the email associated with your account. If this was not you, feel free to ignore this email. Otherwise, click on this link to post your new password: " + verificationURL + " . This link will be active for 3 minutes."
+	subject := "Forgot Password."
 
-// 	GenericSendMail(subject, content, toEmail, userName)
+	err := GenericSendMail(subject, content, toEmail, userName)
+	if err != nil {
+		return err
+	}
 
-// 	entry := models.ForgotPassword{
-// 		Email:     toEmail,
-// 		OTP:       otp,
-// 		ValidTill: time.Now().Add(3 * time.Minute),
-// 	}
-// 	database.DB.Create(&entry)
-// }
+	entry := models.ForgotPassword{
+		Email:     toEmail,
+		OTP:       otp,
+		ValidTill: time.Now().Add(3 * time.Minute),
+	}
+	forgotRepo := repository.NewForgotPasswordRepository()
+	forgotRepo.CreateForgotPassword(entry)
+	return nil
+}

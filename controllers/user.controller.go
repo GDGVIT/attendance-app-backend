@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
@@ -12,12 +13,16 @@ import (
 )
 
 type UserController struct {
-	userRepo *repository.UserRepository
+	userRepo   *repository.UserRepository
+	forgotRepo *repository.ForgotPasswordRepository
+	verifRepo  *repository.VerificationEntryRepository
 }
 
 func NewUserController() *UserController {
 	userRepo := repository.NewUserRepository()
-	return &UserController{userRepo}
+	forgotRepo := repository.NewForgotPasswordRepository()
+	verifRepo := repository.NewVerificationEntryRepository()
+	return &UserController{userRepo, forgotRepo, verifRepo}
 }
 
 // RegisterUser handles user registration
@@ -117,10 +122,9 @@ func (uc *UserController) RequestVerificationAgain(c *gin.Context) {
 		return
 	}
 
-	verificationEntryRepo := repository.NewVerificationEntryRepository()
-	_, err = verificationEntryRepo.GetVerificationEntryByEmail(user.Email)
+	_, err = uc.verifRepo.GetVerificationEntryByEmail(user.Email)
 	if err == nil {
-		err = verificationEntryRepo.DeleteVerificationEntry(user.Email)
+		err = uc.verifRepo.DeleteVerificationEntry(user.Email)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting verification entry."})
 			return
@@ -143,9 +147,8 @@ func (uc *UserController) VerifyEmail(c *gin.Context) {
 	email := c.Query("email")
 	otp := c.Query("otp")
 
-	verificationEntryRepo := repository.NewVerificationEntryRepository()
 	// Fetch the verification entry by email
-	verificationEntry, err := verificationEntryRepo.GetVerificationEntryByEmail(email)
+	verificationEntry, err := uc.verifRepo.GetVerificationEntryByEmail(email)
 	if err != nil {
 		logger.Errorf("Error while verifying: " + err.Error())
 		c.JSON(http.StatusForbidden, gin.H{"error": "Invalid verification."})
@@ -162,7 +165,7 @@ func (uc *UserController) VerifyEmail(c *gin.Context) {
 		}
 
 		// Delete the verification entry
-		err = verificationEntryRepo.DeleteVerificationEntry(email)
+		err = uc.verifRepo.DeleteVerificationEntry(email)
 		if err != nil {
 			logger.Errorf("Error while deleting verification entry: " + err.Error())
 		}
@@ -170,5 +173,96 @@ func (uc *UserController) VerifyEmail(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Verified! You can now log in."})
 	} else {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Invalid verification."})
+	}
+}
+
+// ForgotPasswordRequest handles forgot password requests by sending a mail with an OTP
+func (uc *UserController) ForgotPasswordRequest(c *gin.Context) {
+	useremail := c.Query("email")
+
+	// Fetch the user by email
+	user, err := uc.userRepo.GetUserByEmail(useremail)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"message": "Forgot Password mail sent."})
+		return
+	}
+
+	// Check if a forgot password entry already exists for the user's email
+	err = uc.forgotRepo.DeleteForgotPasswordByEmail(user.Email)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"message": "Forgot Password mail sent."})
+		return
+	}
+
+	// Send the forgot password email
+	err = email.SendForgotPasswordMail(user.Email, user.ID, user.Name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error in sending email."})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Forgot Password mail sent."})
+	logger.Infof("Forgot password request")
+}
+
+// SetNewPassword sets a new password for the user after forgot password request
+func (uc *UserController) SetNewPassword(c *gin.Context) {
+	var forgotPasswordInput struct {
+		NewPassword string `json:"new_password"`
+	}
+	if err := c.ShouldBindJSON(&forgotPasswordInput); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	useremail := c.Query("email")
+	otp := c.Query("otp")
+
+	// Fetch the forgot password entry by email
+	forgotPasswordEntry, err := uc.forgotRepo.GetForgotPasswordByEmail(useremail)
+	if err != nil {
+		logger.Errorf("Error while verifying: %v", err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"message": "Invalid verification."})
+		return
+	}
+
+	if forgotPasswordEntry.ValidTill.Before(time.Now()) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "token expired, please request forgot password again."})
+		return
+	}
+
+	if forgotPasswordEntry.OTP == otp {
+		// Fetch the user by email
+		user, err := uc.userRepo.GetUserByEmail(useremail)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
+			return
+		}
+
+		if !auth.CheckPasswordStrength(forgotPasswordInput.NewPassword) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Password not strong enough."})
+			return
+		}
+		user.Password = forgotPasswordInput.NewPassword
+		user.HashPassword()
+
+		err = uc.userRepo.SaveUser(user)
+		if err != nil {
+			logger.Errorf("Save user after forgot and new: " + err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+			return
+		}
+
+		email.GenericSendMail("Password Reset", "Password for your account was reset recently.", user.Email, user.Name)
+
+		// Delete the forgot password entry
+		err = uc.forgotRepo.DeleteForgotPasswordByEmail(useremail)
+		if err != nil {
+			logger.Errorf("Error while deleting forgot password entry: " + err.Error())
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Password set successfully. Please proceed to login."})
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Invalid verification. Password not updated."})
 	}
 }
