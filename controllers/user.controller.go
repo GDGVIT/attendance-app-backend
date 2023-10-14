@@ -35,7 +35,7 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&registerData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": "Improper JSON."})
 		logger.Errorf("Failed to bind JSON: %v", err)
 		return
 	}
@@ -53,7 +53,7 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 	}
 
 	if !auth.CheckPasswordStrength(registerData.Password) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Password not strong enough."})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password-strength", "message": "Password not strong enough."})
 		return
 	}
 
@@ -61,14 +61,14 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 
 	// Hash the user's password
 	if err := user.HashPassword(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "hashing", "message": "Failed to hash password"})
 		logger.Errorf("Failed to hash password: %v", err)
 		return
 	}
 
 	// Create the user in the database
 	if err := uc.userRepo.CreateUser(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "creation-error", "message": "Failed to create user."})
 		logger.Errorf("Failed to create user: %v", err)
 		return
 	}
@@ -95,13 +95,13 @@ func (uc *UserController) Login(c *gin.Context) {
 	token, user, err := auth.LoginCheck(user.Email, user.Password)
 
 	if !user.Verified {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Please verify your email first."})
+		c.JSON(http.StatusForbidden, gin.H{"error": "unverified", "message": "Please verify your email before logging in."})
 		return
 	}
 
 	if err != nil {
 		println(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": "The email or password is not correct"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "credentials-error", "message": "The email or password is not correct"})
 		return
 	}
 
@@ -126,7 +126,7 @@ func (uc *UserController) RequestVerificationAgain(c *gin.Context) {
 	if err == nil {
 		err = uc.verifRepo.DeleteVerificationEntry(user.Email)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting verification entry."})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Error deleting verification entry."})
 			return
 		}
 	}
@@ -134,7 +134,7 @@ func (uc *UserController) RequestVerificationAgain(c *gin.Context) {
 	// Send verification email
 	err = email.SendRegistrationMail("Account Verification.", "Please visit the following link to verify your account: ", user.Email, user.ID, user.Name, true)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error in sending email."})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "mail", "message": "Error in sending email."})
 		return
 	}
 
@@ -197,7 +197,7 @@ func (uc *UserController) ForgotPasswordRequest(c *gin.Context) {
 	// Send the forgot password email
 	err = email.SendForgotPasswordMail(user.Email, user.ID, user.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error in sending email."})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "mail", "message": "Error in sending email."})
 		return
 	}
 
@@ -211,7 +211,7 @@ func (uc *UserController) SetNewPassword(c *gin.Context) {
 		NewPassword string `json:"new_password"`
 	}
 	if err := c.ShouldBindJSON(&forgotPasswordInput); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": "Improper JSON."})
 		return
 	}
 
@@ -222,12 +222,12 @@ func (uc *UserController) SetNewPassword(c *gin.Context) {
 	forgotPasswordEntry, err := uc.forgotRepo.GetForgotPasswordByEmail(useremail)
 	if err != nil {
 		logger.Errorf("Error while verifying: %v", err.Error())
-		c.JSON(http.StatusForbidden, gin.H{"message": "Invalid verification."})
+		c.JSON(http.StatusForbidden, gin.H{"error": "verification", "message": "Invalid verification. Please check email link again."})
 		return
 	}
 
 	if forgotPasswordEntry.ValidTill.Before(time.Now()) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "token expired, please request forgot password again."})
+		c.JSON(http.StatusForbidden, gin.H{"error": "otp-expiry", "message": "Password OTP has expired, please request forgot password again."})
 		return
 	}
 
@@ -235,12 +235,12 @@ func (uc *UserController) SetNewPassword(c *gin.Context) {
 		// Fetch the user by email
 		user, err := uc.userRepo.GetUserByEmail(useremail)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user-fetch", "message": "Failed to fetch user"})
 			return
 		}
 
 		if !auth.CheckPasswordStrength(forgotPasswordInput.NewPassword) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Password not strong enough."})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "password-strength", "message": "Password not strong enough."})
 			return
 		}
 		user.Password = forgotPasswordInput.NewPassword
@@ -249,7 +249,7 @@ func (uc *UserController) SetNewPassword(c *gin.Context) {
 		err = uc.userRepo.SaveUser(user)
 		if err != nil {
 			logger.Errorf("Save user after forgot and new: " + err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "save-data", "message": "Failed to update password"})
 			return
 		}
 
@@ -263,7 +263,7 @@ func (uc *UserController) SetNewPassword(c *gin.Context) {
 
 		c.JSON(http.StatusOK, gin.H{"message": "Password set successfully. Please proceed to login."})
 	} else {
-		c.JSON(http.StatusForbidden, gin.H{"message": "Invalid verification. Password not updated."})
+		c.JSON(http.StatusForbidden, gin.H{"error": "verification", "message": "Invalid verification. Password not updated."})
 	}
 }
 
@@ -283,13 +283,13 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 	currentUser := user.(*models.User)
 
 	if err := auth.VerifyPassword(resetPasswordInput.OldPassword, currentUser.Password); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect current password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect current password", "message": "Please enter your current password correctly."})
 		email.GenericSendMail("Password Reset Attempt", "Somebody attempted to change your password on Bookstore. Secure your account if this was not you.", currentUser.Email, currentUser.Name)
 		return
 	}
 
 	if !auth.CheckPasswordStrength(resetPasswordInput.NewPassword) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Password not strong enough."})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password-strength", "message": "Password not strong enough."})
 		return
 	}
 	currentUser.Password = resetPasswordInput.NewPassword
@@ -298,7 +298,7 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 	err := uc.userRepo.SaveUser(*currentUser)
 	if err != nil {
 		logger.Errorf("Update Password failed: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "save-data", "message": "Failed to update password"})
 		return
 	}
 
