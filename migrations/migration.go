@@ -11,6 +11,7 @@ func Migrate() {
 	var migrationModels = []interface{}{
 		&models.Example{},
 		&models.User{},
+		&models.VerificationEntry{},
 	}
 	err := database.DB.AutoMigrate(migrationModels...)
 	if err != nil {

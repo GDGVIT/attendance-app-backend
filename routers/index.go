@@ -33,5 +33,11 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Define the user login route
 		auth.POST("/login", userController.Login)
+
+		// Verify user account by providing otp
+		auth.POST("/verify", userController.VerifyEmail)
+
+		// Request another verification email
+		auth.GET("/request-verification", userController.RequestVerificationAgain)
 	}
 }

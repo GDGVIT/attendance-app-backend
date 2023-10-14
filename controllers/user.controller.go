@@ -7,6 +7,7 @@ import (
 	"github.com/GDGVIT/attendance-app-backend/models"
 	"github.com/GDGVIT/attendance-app-backend/repository"
 	"github.com/GDGVIT/attendance-app-backend/utils/auth"
+	"github.com/GDGVIT/attendance-app-backend/utils/email"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,15 +36,19 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 	}
 
 	// Check if the user already exists
-	existingUser, err := uc.userRepo.GetUserByEmail(registerData.Email)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		logger.Errorf("Failed to get user by email: %v", err)
-		return
-	}
+	existingUser, _ := uc.userRepo.GetUserByEmail(registerData.Email)
+
 	var emptyUser models.User
 	if existingUser != emptyUser {
-		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
+		email.SendRegistrationMail("Account Alert", "Someone attempted to create an account using your email. If this was you, try applying for password reset in case you have lost access to your account.", existingUser.Email, existingUser.ID, existingUser.Name, false)
+		c.JSON(http.StatusCreated, gin.H{"message": "User created. Verification email sent!"})
+		// c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
+		// we lie!
+		return
+	}
+
+	if !auth.CheckPasswordStrength(registerData.Password) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password not strong enough."})
 		return
 	}
 
@@ -63,7 +68,9 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
+	email.SendRegistrationMail("Account Verification.", "Please visit the following link to verify your account: ", user.Email, user.ID, user.Name, true)
+	c.JSON(http.StatusCreated, gin.H{"message": "User created. Verification email sent!"})
+	logger.Infof("New User Created.")
 }
 
 // Login handles user login
@@ -94,4 +101,74 @@ func (uc *UserController) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token, "user": user})
+}
+
+func (uc *UserController) RequestVerificationAgain(c *gin.Context) {
+	useremail := c.Query("email")
+
+	user, err := uc.userRepo.GetUserByEmail(useremail)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"message": "Verification email sent."})
+		return
+	}
+
+	if user.Verified {
+		c.JSON(http.StatusOK, gin.H{"message": "Verification email sent."})
+		return
+	}
+
+	verificationEntryRepo := repository.NewVerificationEntryRepository()
+	_, err = verificationEntryRepo.GetVerificationEntryByEmail(user.Email)
+	if err == nil {
+		err = verificationEntryRepo.DeleteVerificationEntry(user.Email)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting verification entry."})
+			return
+		}
+	}
+
+	// Send verification email
+	err = email.SendRegistrationMail("Account Verification.", "Please visit the following link to verify your account: ", user.Email, user.ID, user.Name, true)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error in sending email."})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Verification email sent to you again."})
+	logger.Infof("Verification requested again")
+}
+
+// VerifyEmail takes your email and otp sent of registration to verify a user account.
+func (uc *UserController) VerifyEmail(c *gin.Context) {
+	email := c.Query("email")
+	otp := c.Query("otp")
+
+	verificationEntryRepo := repository.NewVerificationEntryRepository()
+	// Fetch the verification entry by email
+	verificationEntry, err := verificationEntryRepo.GetVerificationEntryByEmail(email)
+	if err != nil {
+		logger.Errorf("Error while verifying: " + err.Error())
+		c.JSON(http.StatusForbidden, gin.H{"error": "Invalid verification."})
+		return
+	}
+
+	if verificationEntry.OTP == otp {
+		// Verify the email by updating the user's verification status
+		err = uc.userRepo.VerifyUserEmail(email)
+		if err != nil {
+			logger.Errorf("Error while verifying: " + err.Error())
+			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid verification."})
+			return
+		}
+
+		// Delete the verification entry
+		err = verificationEntryRepo.DeleteVerificationEntry(email)
+		if err != nil {
+			logger.Errorf("Error while deleting verification entry: " + err.Error())
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Verified! You can now log in."})
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Invalid verification."})
+	}
 }

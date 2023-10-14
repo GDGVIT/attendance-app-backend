@@ -10,6 +10,8 @@ import (
 	"net/http"
 
 	"github.com/GDGVIT/attendance-app-backend/infra/logger"
+	"github.com/GDGVIT/attendance-app-backend/models"
+	"github.com/GDGVIT/attendance-app-backend/repository"
 	"github.com/spf13/viper"
 )
 
@@ -44,8 +46,8 @@ func GenericSendMail(subject string, content string, toEmail string, userName st
 	data := RegistrationEmail{
 		Subject: subject,
 		From: EmailAddress{
-			Email: "bookstore@anrdhmshr.tech",
-			Name:  "BOOKSTORE ADMIN",
+			Email: "attapp@anrdhmshr.tech",
+			Name:  "Attendance App",
 		},
 		To: []EmailAddress{
 			{
@@ -53,7 +55,7 @@ func GenericSendMail(subject string, content string, toEmail string, userName st
 				Name:  userName,
 			},
 		},
-		Category: "BookStore",
+		Category: "AttendanceApp",
 		Text:     content,
 	}
 
@@ -80,31 +82,33 @@ func GenericSendMail(subject string, content string, toEmail string, userName st
 		logger.Errorf("Email Error: %v", err)
 		return err
 	}
+
 	defer res.Body.Close()
 	return nil
 }
 
-// func SendRegistrationMail(subject string, content string, toEmail string, userID uint, userName string, newUser bool) error {
-// 	otp := ""
-// 	if newUser {
-// 		otp = GenerateOTP(6)
-// 		content += "http://bookstore.anrdhmshr.tech/verify?email=" + toEmail + "&otp=" + otp
-// 	}
+func SendRegistrationMail(subject string, content string, toEmail string, userID uint, userName string, newUser bool) error {
+	otp := ""
+	if newUser {
+		otp = GenerateOTP(6)
+		content += "http://bookstore.anrdhmshr.tech/verify?email=" + toEmail + "&otp=" + otp
+	}
 
-// 	err := GenericSendMail(subject, content, toEmail, userName)
-// 	if err != nil {
-// 		return err
-// 	}
+	err := GenericSendMail(subject, content, toEmail, userName)
+	if err != nil {
+		return err
+	}
 
-// 	if newUser {
-// 		entry := models.VerificationEntry{
-// 			Email: toEmail,
-// 			OTP:   otp,
-// 		}
-// 		database.DB.Create(&entry)
-// 	}
-// 	return nil
-// }
+	if newUser {
+		entry := models.VerificationEntry{
+			Email: toEmail,
+			OTP:   otp,
+		}
+		verifRepo := repository.NewVerificationEntryRepository()
+		verifRepo.CreateVerificationEntry(entry)
+	}
+	return nil
+}
 
 // func SendDeletionMail(toEmail string, userID uint, userName string) {
 // 	otp := ""
