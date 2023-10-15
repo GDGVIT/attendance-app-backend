@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// BaseAuthMiddleware checks if the user is authenticated
 func BaseAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
