@@ -4,23 +4,11 @@ import (
 	"testing"
 
 	"github.com/GDGVIT/attendance-app-backend/models"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"github.com/GDGVIT/attendance-app-backend/utils/test_utils"
 )
 
-func setupTestDB() (*gorm.DB, error) {
-	// Create an in-memory SQLite database for testing
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
-	// automigrate user and authprovider models
-	db.AutoMigrate(&models.User{}, &models.AuthProvider{}, &models.DeletionConfirmation{}, &models.VerificationEntry{}, &models.ForgotPassword{}, &models.PasswordAuth{})
-	return db, nil
-}
-
 func TestUserRepository_CreateUser(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -52,7 +40,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 }
 
 func TestUserRepository_GetUserByEmail_NotFound(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -70,7 +58,7 @@ func TestUserRepository_GetUserByEmail_NotFound(t *testing.T) {
 }
 
 func TestUserRepository_DeleteUserByID(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -112,7 +100,7 @@ func TestUserRepository_DeleteUserByID(t *testing.T) {
 }
 
 func TestUserRepository_GetUserByID(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -150,7 +138,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 }
 
 func TestUserRepository_VerifyUserEmail(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -187,7 +175,7 @@ func TestUserRepository_VerifyUserEmail(t *testing.T) {
 }
 
 func TestUserRepository_SaveUser(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}

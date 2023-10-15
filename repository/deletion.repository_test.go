@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/GDGVIT/attendance-app-backend/models"
+	"github.com/GDGVIT/attendance-app-backend/utils/test_utils"
 )
 
 func TestDeletionConfirmationRepository_CreateDeletionConfirmation(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -39,7 +40,7 @@ func TestDeletionConfirmationRepository_CreateDeletionConfirmation(t *testing.T)
 }
 
 func TestDeletionConfirmationRepository_DeleteDeletionConfirmationByEmail(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}

@@ -81,3 +81,8 @@ func (ur *UserRepository) DeleteUserByID(userID uint) error {
 
 	return nil
 }
+
+// for testing purposes
+func (ur *UserRepository) SetDB(db *gorm.DB) {
+	ur.db = db
+}

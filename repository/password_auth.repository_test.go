@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/GDGVIT/attendance-app-backend/models"
+	"github.com/GDGVIT/attendance-app-backend/utils/test_utils"
 )
 
 func TestPasswordAuthRepository_CreatePwdAuthItem(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -39,7 +40,7 @@ func TestPasswordAuthRepository_CreatePwdAuthItem(t *testing.T) {
 }
 
 func TestPasswordAuthRepository_DeletePwdAuthItemByEmail(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -75,7 +76,7 @@ func TestPasswordAuthRepository_DeletePwdAuthItemByEmail(t *testing.T) {
 }
 
 func TestPasswordAuthRepository_UpdatePwdAuthItem(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}

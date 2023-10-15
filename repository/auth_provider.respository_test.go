@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/GDGVIT/attendance-app-backend/models"
+	"github.com/GDGVIT/attendance-app-backend/utils/test_utils"
 )
 
 func TestAuthProviderRepository_GetAuthProviderByProviderKey(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -40,7 +41,7 @@ func TestAuthProviderRepository_GetAuthProviderByProviderKey(t *testing.T) {
 }
 
 func TestAuthProviderRepository_CreateAuthProvider(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -78,7 +79,7 @@ func TestAuthProviderRepository_CreateAuthProvider(t *testing.T) {
 }
 
 func TestAuthProviderRepository_UpdateAuthProvider(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -122,7 +123,7 @@ func TestAuthProviderRepository_UpdateAuthProvider(t *testing.T) {
 }
 
 func TestAuthProviderRepository_DeleteAuthProvider(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
@@ -159,7 +160,7 @@ func TestAuthProviderRepository_DeleteAuthProvider(t *testing.T) {
 }
 
 func TestAuthProviderRepository_DeleteAuthProviderByUserID(t *testing.T) {
-	db, err := setupTestDB()
+	db, err := test_utils.SetupTestDB()
 	if err != nil {
 		t.Fatalf("Failed to set up test database: %v", err)
 	}
