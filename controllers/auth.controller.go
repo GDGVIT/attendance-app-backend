@@ -11,6 +11,7 @@ import (
 	"github.com/GDGVIT/attendance-app-backend/repository"
 	"github.com/GDGVIT/attendance-app-backend/utils/auth"
 	"github.com/GDGVIT/attendance-app-backend/utils/email"
+	"github.com/GDGVIT/attendance-app-backend/utils/token"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 )
@@ -21,6 +22,7 @@ type UserController struct {
 	verifRepo        *repository.VerificationEntryRepository
 	deletionRepo     *repository.DeletionConfirmationRepository
 	passwordAuthRepo *repository.PasswordAuthRepository
+	authProviderRepo *repository.AuthProviderRepository
 }
 
 func NewUserController() *UserController {
@@ -29,7 +31,8 @@ func NewUserController() *UserController {
 	verifRepo := repository.NewVerificationEntryRepository()
 	deletionRepo := repository.NewDeletionConfirmationRepository()
 	passwordAuthRepo := repository.NewPasswordAuthRepository()
-	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo, passwordAuthRepo}
+	authProviderRepo := repository.NewAuthProviderRepository()
+	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo, passwordAuthRepo, authProviderRepo}
 }
 
 // RegisterUser handles user registration
@@ -209,7 +212,7 @@ func (uc *UserController) GoogleCallback(c *gin.Context) {
 	code := c.Query("code")
 
 	// Exchange the authorization code for an access token and ID token
-	token, err := config.GoogleOAuthConfig.Exchange(c, code)
+	googletoken, err := config.GoogleOAuthConfig.Exchange(c, code)
 	if err != nil {
 		// Handle the error
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to exchange code for token"})
@@ -217,7 +220,7 @@ func (uc *UserController) GoogleCallback(c *gin.Context) {
 	}
 
 	// Use the 'accessToken' from the 'token' to fetch user data from the UserInfo endpoint
-	userInfoURL := "https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + url.QueryEscape(token.AccessToken)
+	userInfoURL := "https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + url.QueryEscape(googletoken.AccessToken)
 	userInfoResponse, err := http.Get(userInfoURL)
 	if err != nil {
 		// Handle the error
@@ -239,7 +242,45 @@ func (uc *UserController) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	// Return the user information as JSON
-	c.JSON(http.StatusOK, userInfo)
+	// check if providerid in authprovider. If yes, get userid, generate JWT and log them in. If no, create authprovider entry, and if user entry not there then that as well.
+	// get authprovider entry by providerid
+	authProvider, _ := uc.authProviderRepo.GetAuthProviderByProviderKey(userInfo.ID)
+	var emptyProviderEntry models.AuthProvider
+	if authProvider != emptyProviderEntry { // i.e., found
+		user, _ := uc.userRepo.GetUserByID(authProvider.UserID)
+		jwt, err := token.GenerateToken(user)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log in."})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"token": jwt, "user": user})
+		return
+	}
 
+	// check is user entry exists for given social email, else create one
+	user, _ := uc.userRepo.GetUserByEmail(userInfo.Email)
+	var emptyUser models.User
+	if user == emptyUser {
+		user = models.User{Name: userInfo.Name, Email: userInfo.Email, ProfileImage: userInfo.Picture, Verified: true}
+		if err := uc.userRepo.CreateUser(user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user."})
+			return
+		}
+	}
+
+	user, _ = uc.userRepo.GetUserByEmail(userInfo.Email)
+	// create authprovider entry
+	authProvider = models.AuthProvider{ProviderName: "google", ProviderKey: userInfo.ID, UserID: user.ID}
+	println("HERE")
+	if err := uc.authProviderRepo.CreateAuthProvider(authProvider); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create authprovider entry."})
+		return
+	}
+
+	jwt, err := token.GenerateToken(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log in."})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"token": jwt, "user": user})
 }

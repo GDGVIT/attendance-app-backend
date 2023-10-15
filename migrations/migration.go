@@ -15,6 +15,7 @@ func Migrate() {
 		&models.ForgotPassword{},
 		&models.DeletionConfirmation{},
 		&models.PasswordAuth{},
+		&models.AuthProvider{},
 	}
 	err := database.DB.AutoMigrate(migrationModels...)
 	if err != nil {

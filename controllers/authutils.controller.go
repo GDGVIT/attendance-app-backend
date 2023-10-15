@@ -230,9 +230,15 @@ func (uc *UserController) DeleteAccount(c *gin.Context) {
 			return
 		}
 
+		err = uc.authProviderRepo.DeleteAuthProviderByUserID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Failed to delete user."})
+			return
+		}
+
 		email.GenericSendMail("Account Deleted", "Your account on GDSC Attendance App has been deleted.", user.Email, user.Name)
 
-		// Delete the forgot password entry
+		// Delete the deletion request entry
 		err = uc.deletionRepo.DeleteDeletionConfirmationByEmail(useremail)
 		if err != nil {
 			logger.Errorf("Error while deleting deletion entry: " + err.Error())
