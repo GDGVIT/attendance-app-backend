@@ -51,13 +51,18 @@ func LoginCheck(email, password string) (t string, u models.User, e error) {
 	var err error
 
 	userRepo := repository.NewUserRepository()
+	pwdAuthRepo := repository.NewPasswordAuthRepository()
 
 	user, err := userRepo.GetUserByEmail(email)
 	if err != nil {
 		return "", user, err
 	}
+	pwdAuth, err := pwdAuthRepo.GetPwdAuthItemByEmail(email)
+	if err != nil {
+		return "", user, err
+	}
 
-	err = VerifyPassword(password, user.Password)
+	err = VerifyPassword(password, pwdAuth.Password)
 
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		return "", user, err

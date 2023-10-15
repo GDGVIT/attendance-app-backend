@@ -73,15 +73,26 @@ func (uc *UserController) SetNewPassword(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user-fetch", "message": "Failed to fetch user"})
 			return
 		}
+		pwdAuth, err := uc.passwordAuthRepo.GetPwdAuthItemByEmail(useremail)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user-fetch", "message": "Failed to fetch user"})
+			return
+		}
 
 		if !auth.CheckPasswordStrength(forgotPasswordInput.NewPassword) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "password-strength", "message": "Password not strong enough."})
 			return
 		}
-		user.Password = forgotPasswordInput.NewPassword
-		user.HashPassword()
+		pwdAuth.Password = forgotPasswordInput.NewPassword
+		pwdAuth.HashPassword()
 
 		err = uc.userRepo.SaveUser(user)
+		if err != nil {
+			logger.Errorf("Save user after forgot and new: " + err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "save-data", "message": "Failed to update password"})
+			return
+		}
+		err = uc.passwordAuthRepo.UpdatePwdAuthItem(pwdAuth)
 		if err != nil {
 			logger.Errorf("Save user after forgot and new: " + err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "save-data", "message": "Failed to update password"})
@@ -116,8 +127,14 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 
 	user, _ := c.Get("user")
 	currentUser := user.(*models.User)
+	currentPwdAuth, err := uc.passwordAuthRepo.GetPwdAuthItemByEmail(currentUser.Email)
+	if err != nil {
+		logger.Errorf("Error getting password auth item: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "fetch-data", "message": "Failed to get auth item."})
+		return
+	}
 
-	if err := auth.VerifyPassword(resetPasswordInput.OldPassword, currentUser.Password); err != nil {
+	if err := auth.VerifyPassword(resetPasswordInput.OldPassword, currentPwdAuth.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect current password", "message": "Please enter your current password correctly."})
 		email.GenericSendMail("Password Reset Attempt", "Somebody attempted to change your password on Bookstore. Secure your account if this was not you.", currentUser.Email, currentUser.Name)
 		return
@@ -127,10 +144,16 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "password-strength", "message": "Password not strong enough."})
 		return
 	}
-	currentUser.Password = resetPasswordInput.NewPassword
-	currentUser.HashPassword()
+	currentPwdAuth.Password = resetPasswordInput.NewPassword
+	currentPwdAuth.HashPassword()
 
-	err := uc.userRepo.SaveUser(*currentUser)
+	err = uc.userRepo.SaveUser(*currentUser)
+	if err != nil {
+		logger.Errorf("Update Password failed: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "save-data", "message": "Failed to update password"})
+		return
+	}
+	err = uc.passwordAuthRepo.UpdatePwdAuthItem(currentPwdAuth)
 	if err != nil {
 		logger.Errorf("Update Password failed: " + err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "save-data", "message": "Failed to update password"})
@@ -196,6 +219,12 @@ func (uc *UserController) DeleteAccount(c *gin.Context) {
 		}
 
 		err = uc.userRepo.DeleteUserByID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Failed to delete user."})
+			return
+		}
+
+		err = uc.passwordAuthRepo.DeletePwdAuthItemByEmail(user.Email)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Failed to delete user."})
 			return

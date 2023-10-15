@@ -16,10 +16,11 @@ import (
 )
 
 type UserController struct {
-	userRepo     *repository.UserRepository
-	forgotRepo   *repository.ForgotPasswordRepository
-	verifRepo    *repository.VerificationEntryRepository
-	deletionRepo *repository.DeletionConfirmationRepository
+	userRepo         *repository.UserRepository
+	forgotRepo       *repository.ForgotPasswordRepository
+	verifRepo        *repository.VerificationEntryRepository
+	deletionRepo     *repository.DeletionConfirmationRepository
+	passwordAuthRepo *repository.PasswordAuthRepository
 }
 
 func NewUserController() *UserController {
@@ -27,7 +28,8 @@ func NewUserController() *UserController {
 	forgotRepo := repository.NewForgotPasswordRepository()
 	verifRepo := repository.NewVerificationEntryRepository()
 	deletionRepo := repository.NewDeletionConfirmationRepository()
-	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo}
+	passwordAuthRepo := repository.NewPasswordAuthRepository()
+	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo, passwordAuthRepo}
 }
 
 // RegisterUser handles user registration
@@ -51,7 +53,7 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 	var emptyUser models.User
 	if existingUser != emptyUser {
 		email.SendRegistrationMail("Account Alert", "Someone attempted to create an account using your email. If this was you, try applying for password reset in case you have lost access to your account.", existingUser.Email, existingUser.ID, existingUser.Name, false)
-		c.JSON(http.StatusCreated, gin.H{"message": "User created. Verification email sent!"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "User with that email address already exists!", "error": "user-exists"})
 		// c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 		// we lie!
 		return
@@ -62,17 +64,25 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	user := models.User{Name: registerData.Name, Email: registerData.Email, Password: registerData.Password, ProfileImage: registerData.ProfileImage}
+	user := models.User{Name: registerData.Name, Email: registerData.Email, ProfileImage: registerData.ProfileImage}
+	pwdauth := models.PasswordAuth{Password: registerData.Password, Email: registerData.Email}
 
 	// Hash the user's password
-	if err := user.HashPassword(); err != nil {
+	if err := pwdauth.HashPassword(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "hashing", "message": "Failed to hash password"})
 		logger.Errorf("Failed to hash password: %v", err)
 		return
 	}
 
-	// Create the user in the database
+	// Create the user profile in the database
 	if err := uc.userRepo.CreateUser(user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "creation-error", "message": "Failed to create user."})
+		logger.Errorf("Failed to create user: %v", err)
+		return
+	}
+
+	// Create the password auth item in the database
+	if err := uc.passwordAuthRepo.CreatePwdAuthItem(&pwdauth); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "creation-error", "message": "Failed to create user."})
 		logger.Errorf("Failed to create user: %v", err)
 		return
@@ -95,9 +105,7 @@ func (uc *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	user := models.User{Email: loginData.Email, Password: loginData.Password}
-
-	token, user, err := auth.LoginCheck(user.Email, user.Password)
+	token, user, err := auth.LoginCheck(loginData.Email, loginData.Password)
 
 	if err != nil {
 		println(err.Error())

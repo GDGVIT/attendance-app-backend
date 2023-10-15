@@ -14,9 +14,13 @@ func Migrate() {
 		&models.VerificationEntry{},
 		&models.ForgotPassword{},
 		&models.DeletionConfirmation{},
+		&models.PasswordAuth{},
 	}
 	err := database.DB.AutoMigrate(migrationModels...)
 	if err != nil {
 		return
 	}
+
+	// Remove the 'Password' field from the 'users' table
+	// database.DB.Migrator().DropColumn(&models.User{}, "password")
 }
