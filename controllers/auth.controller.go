@@ -13,6 +13,7 @@ import (
 	"github.com/GDGVIT/attendance-app-backend/utils/email"
 	"github.com/GDGVIT/attendance-app-backend/utils/token"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 )
 
@@ -253,6 +254,7 @@ func (uc *UserController) GoogleCallback(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log in."})
 			return
 		}
+		c.Redirect(http.StatusSeeOther, viper.GetString("FRONTEND_SOCIAL_REDIRECT")+"?token="+jwt)
 		c.JSON(http.StatusOK, gin.H{"token": jwt, "user": user})
 		return
 	}
@@ -271,7 +273,6 @@ func (uc *UserController) GoogleCallback(c *gin.Context) {
 	user, _ = uc.userRepo.GetUserByEmail(userInfo.Email)
 	// create authprovider entry
 	authProvider = models.AuthProvider{ProviderName: "google", ProviderKey: userInfo.ID, UserID: user.ID}
-	println("HERE")
 	if err := uc.authProviderRepo.CreateAuthProvider(authProvider); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create authprovider entry."})
 		return
@@ -282,5 +283,7 @@ func (uc *UserController) GoogleCallback(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log in."})
 		return
 	}
+
+	c.Redirect(http.StatusSeeOther, viper.GetString("FRONTEND_SOCIAL_REDIRECT")+"?token="+jwt)
 	c.JSON(http.StatusOK, gin.H{"token": jwt, "user": user})
 }
