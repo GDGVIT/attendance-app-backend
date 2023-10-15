@@ -21,6 +21,9 @@ func main() {
 	if err := config.SetupConfig(); err != nil {
 		logger.Fatalf("config SetupConfig() error: %s", err)
 	}
+
+	config.InitialiseOAuthGoogle()
+
 	masterDSN, replicaDSN := config.DbConfiguration()
 
 	if err := database.DbConnection(masterDSN, replicaDSN); err != nil {

@@ -1,14 +1,18 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
+	"net/url"
 
+	"github.com/GDGVIT/attendance-app-backend/config"
 	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
 	"github.com/GDGVIT/attendance-app-backend/repository"
 	"github.com/GDGVIT/attendance-app-backend/utils/auth"
 	"github.com/GDGVIT/attendance-app-backend/utils/email"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
 )
 
 type UserController struct {
@@ -175,4 +179,50 @@ func (uc *UserController) VerifyEmail(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Invalid verification."})
 	}
+}
+
+// GoogleLogin initiates google oauth2 flow
+func (uc *UserController) GoogleLogin(c *gin.Context) {
+	url := config.GoogleOAuthConfig.AuthCodeURL("", oauth2.AccessTypeOffline)
+	c.Redirect(http.StatusFound, url)
+}
+
+// GoogleCallback handles the callback from google oauth2
+func (uc *UserController) GoogleCallback(c *gin.Context) {
+	code := c.Query("code")
+
+	// Exchange the authorization code for an access token and ID token
+	token, err := config.GoogleOAuthConfig.Exchange(c, code)
+	if err != nil {
+		// Handle the error
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to exchange code for token"})
+		return
+	}
+
+	// Use the 'accessToken' from the 'token' to fetch user data from the UserInfo endpoint
+	userInfoURL := "https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + url.QueryEscape(token.AccessToken)
+	userInfoResponse, err := http.Get(userInfoURL)
+	if err != nil {
+		// Handle the error
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user info from Google"})
+		return
+	}
+	defer userInfoResponse.Body.Close()
+
+	var userInfo struct {
+		ID      string `json:"id"`
+		Email   string `json:"email"`
+		Name    string `json:"name"`
+		Picture string `json:"picture"`
+	}
+
+	if err := json.NewDecoder(userInfoResponse.Body).Decode(&userInfo); err != nil {
+		// Handle the error
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user info response"})
+		return
+	}
+
+	// Return the user information as JSON
+	c.JSON(http.StatusOK, userInfo)
+
 }

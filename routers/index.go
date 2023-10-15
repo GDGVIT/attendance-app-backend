@@ -58,5 +58,11 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Delete account
 		auth.DELETE("/delete-account", middleware.BaseAuthMiddleware(), userController.DeleteAccount)
+
+		// Google login
+		auth.GET("/google/login", userController.GoogleLogin)
+
+		// Google Callback
+		auth.GET("/google/callback", userController.GoogleCallback)
 	}
 }
