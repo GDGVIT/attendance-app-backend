@@ -9,6 +9,7 @@ type PasswordAuth struct {
 	gorm.Model
 	Email    string `gorm:"size:255;not null;unique;"`
 	Password string `gorm:"size:255;not null;"`
+	UserID   uint   `gorm:"unique;"`
 }
 
 func (pa *PasswordAuth) HashPassword() error {

@@ -20,16 +20,16 @@ func (par *PasswordAuthRepository) CreatePwdAuthItem(passwordAuth *models.Passwo
 }
 
 // GetUserByEmail retrieves a PasswordAuth record by email.
-func (par *PasswordAuthRepository) GetPwdAuthItemByEmail(email string) (*models.PasswordAuth, error) {
+func (par *PasswordAuthRepository) GetPwdAuthItemByEmail(email string) (models.PasswordAuth, error) {
 	var user models.PasswordAuth
 	if err := par.db.Where("email = ?", email).First(&user).Error; err != nil {
-		return nil, err
+		return user, err
 	}
-	return &user, nil
+	return user, nil
 }
 
 // UpdateUser updates an existing PasswordAuth record.
-func (par *PasswordAuthRepository) UpdatePwdAuthItem(passwordAuth *models.PasswordAuth) error {
+func (par *PasswordAuthRepository) UpdatePwdAuthItem(passwordAuth models.PasswordAuth) error {
 	return par.db.Save(passwordAuth).Error
 }
 

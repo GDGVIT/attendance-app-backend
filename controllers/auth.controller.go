@@ -49,9 +49,11 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 
 	// Check if the user already exists
 	existingUser, _ := uc.userRepo.GetUserByEmail(registerData.Email)
+	existingPwdAuth, _ := uc.passwordAuthRepo.GetPwdAuthItemByEmail(registerData.Email)
 
+	var emptyPwdAuth models.PasswordAuth
 	var emptyUser models.User
-	if existingUser != emptyUser {
+	if existingPwdAuth != emptyPwdAuth {
 		email.SendRegistrationMail("Account Alert", "Someone attempted to create an account using your email. If this was you, try applying for password reset in case you have lost access to your account.", existingUser.Email, existingUser.ID, existingUser.Name, false)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "User with that email address already exists!", "error": "user-exists"})
 		// c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
@@ -74,23 +76,30 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Create the user profile in the database
-	if err := uc.userRepo.CreateUser(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "creation-error", "message": "Failed to create user."})
-		logger.Errorf("Failed to create user: %v", err)
-		return
+	// Create the user profile in the database IF there is no user profile yet
+	if emptyUser == existingUser {
+		if err := uc.userRepo.CreateUser(user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "creation-error", "message": "Failed to create user."})
+			logger.Errorf("Failed to create user: %v", err)
+			return
+		}
+		email.SendRegistrationMail("Account Verification.", "Please visit the following link to verify your account: ", user.Email, user.ID, user.Name, true)
+		c.JSON(http.StatusCreated, gin.H{"message": "User created. Verification email sent!"})
+		logger.Infof("New User Created.")
+		u, _ := uc.userRepo.GetUserByEmail(registerData.Email)
+		pwdauth.UserID = u.ID
+	} else {
+		pwdauth.UserID = existingUser.ID
 	}
-
 	// Create the password auth item in the database
 	if err := uc.passwordAuthRepo.CreatePwdAuthItem(&pwdauth); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "creation-error", "message": "Failed to create user."})
 		logger.Errorf("Failed to create user: %v", err)
 		return
 	}
-
-	email.SendRegistrationMail("Account Verification.", "Please visit the following link to verify your account: ", user.Email, user.ID, user.Name, true)
-	c.JSON(http.StatusCreated, gin.H{"message": "User created. Verification email sent!"})
-	logger.Infof("New User Created.")
+	if emptyUser != existingUser {
+		c.JSON(http.StatusCreated, gin.H{"message": "Email-Password login method added."})
+	}
 }
 
 // Login handles user login
