@@ -1,6 +1,9 @@
 package config
 
 import (
+	"log"
+	"os"
+
 	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/spf13/viper"
 )
@@ -15,9 +18,13 @@ func SetupConfig() error {
 
 	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
-	if err := viper.ReadInConfig(); err != nil {
-		logger.Errorf("Error to reading config file, %s", err)
-		return err
+	if _, err := os.Stat(".env"); os.IsNotExist(err) {
+		log.Println("Warning: .env file not found. Using environment variables or defaults.")
+	} else {
+		// Read .env file
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatalf("Error reading .env file: %s", err)
+		}
 	}
 
 	err := viper.Unmarshal(&configuration)

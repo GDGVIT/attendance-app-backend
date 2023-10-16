@@ -1,0 +1,35 @@
+# fly.toml app configuration file generated for atapp on 2023-10-16T18:27:08+05:30
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "atapp"
+primary_region = "sin"
+
+[build]
+
+[env]
+  ALLOWED_HOSTS = "0.0.0.0"
+  SERVER_HOST = "0.0.0.0"
+  SERVER_PORT = "8000"
+
+  TOKEN_HOUR_LIFESPAN = "24"
+
+  GOOGLE_CLIENT_ID = "377508142690-22j3k6vq9mkbp123350gat49vc4ovi1l.apps.googleusercontent.com"
+  GOOGLE_REDIRECT_URI = "http://localhost:8000/v1/auth/google/callback"
+  GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/auth"
+  GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+
+  FRONTEND_SOCIAL_REDIRECT = "http://127.0.0.1:8000/socialback"
+
+[mounts]
+  source = "app_logs"
+  destination = "/app_logs"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]

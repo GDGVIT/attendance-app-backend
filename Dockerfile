@@ -17,5 +17,7 @@ RUN go build -o app
 # Set the DEBUG environment variable to False in production
 ENV DEBUG=False
 
+EXPOSE 8000
+
 # Set the entry point for your application
 CMD ["./app"]
