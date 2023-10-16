@@ -4,33 +4,18 @@ FROM golang:1.20-alpine as builder
 # Install git.
 RUN apk update && apk add --no-cache git
 
-# Working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy go mod and sum files
+# Copy only necessary files
 COPY go.mod go.sum ./
-
-# Download all dependencies
-RUN go mod download
-
-# Copy everythings
 COPY . .
 
-# Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -v -o main .
+# Build the Go application
+RUN go build -o app
 
-# Start a new stage from scratch
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+# Set the DEBUG environment variable to False in production
+ENV DEBUG=False
 
-WORKDIR /root/
-
-# Copy the Pre-built binary file from the previous stage. Also copy config yml file
-COPY --from=builder /app/main .
-COPY --from=builder /app/.env.example .env
-
-# Expose port 8080 to the outside world
-EXPOSE 8000
-
-#Command to run the executable
-CMD ["./main"]
+# Set the entry point for your application
+CMD ["./app"]

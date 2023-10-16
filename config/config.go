@@ -6,8 +6,7 @@ import (
 )
 
 type Configuration struct {
-	Server   ServerConfiguration
-	Database DatabaseConfiguration
+	Server ServerConfiguration
 }
 
 // SetupConfig configuration
@@ -15,6 +14,7 @@ func SetupConfig() error {
 	var configuration *Configuration
 
 	viper.SetConfigFile(".env")
+	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Errorf("Error to reading config file, %s", err)
 		return err
