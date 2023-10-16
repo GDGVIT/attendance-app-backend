@@ -24,9 +24,9 @@ func main() {
 
 	config.InitialiseOAuthGoogle()
 
-	masterDSN, replicaDSN := config.DbConfiguration()
+	DSN := config.DbConfiguration()
 
-	if err := database.DbConnection(masterDSN, replicaDSN); err != nil {
+	if err := database.DbConnection(DSN); err != nil {
 		logger.Fatalf("database DbConnection error: %s", err)
 	}
 	//later separate migration
