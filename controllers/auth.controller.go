@@ -81,7 +81,7 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 	}
 
 	// Create the user profile in the database IF there is no user profile yet
-	if emptyUser == existingUser {
+	if emptyUser.ID == existingUser.ID {
 		if err := uc.userRepo.CreateUser(user); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "creation-error", "message": "Failed to create user."})
 			logger.Errorf("Failed to create user: %v", err)
@@ -101,7 +101,7 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 		logger.Errorf("Failed to create user: %v", err)
 		return
 	}
-	if emptyUser != existingUser {
+	if emptyUser.ID != existingUser.ID {
 		c.JSON(http.StatusCreated, gin.H{"message": "Email-Password login method added."})
 	}
 }
@@ -262,7 +262,7 @@ func (uc *UserController) GoogleCallback(c *gin.Context) {
 	// check is user entry exists for given social email, else create one
 	user, _ := uc.userRepo.GetUserByEmail(userInfo.Email)
 	var emptyUser models.User
-	if user == emptyUser {
+	if user.ID == emptyUser.ID {
 		user = models.User{Name: userInfo.Name, Email: userInfo.Email, ProfileImage: userInfo.Picture, Verified: true}
 		if err := uc.userRepo.CreateUser(user); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user."})
