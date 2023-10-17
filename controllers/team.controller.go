@@ -206,6 +206,58 @@ func (tc *TeamController) JoinTeamByInviteCode(c *gin.Context) {
 
 // --- Can be done by team member, admin and super admin ---
 
+// LeaveTeam removes the user from the team.
+func (tc *TeamController) LeaveTeam(c *gin.Context) {
+	// Get the current user
+	// we are getting the user from the context
+	currentUser, _ := c.Get("user")
+	user, ok := currentUser.(*models.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get the current user"})
+		return
+	}
+
+	// Get the team ID from the route parameter
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get the team
+	team, err := tc.teamRepo.GetTeamByID(uint(teamID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	// Check if the user is a member of the team
+	teamMember, err := tc.teamMemberRepo.GetTeamMemberByID(team.ID, user.ID)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": "User is not a member of the team"})
+		return
+	}
+
+	// Check if the user is the super admin of the team
+	if teamMember.Role == models.SuperAdminRole {
+		c.JSON(http.StatusForbidden, gin.H{"error": "super-admin-leaving", "message": "You cannot leave the team as you are the super admin. Please handover the team super admin position to an admin, or delete the team instead."})
+		return
+	}
+
+	// Delete the team member
+	err = tc.teamMemberRepo.DeleteTeamMember(team.ID, user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete team member"})
+		logger.Errorf("Failed to delete team member: " + err.Error())
+		return
+	}
+
+	// Email the user
+	// email.SendLeaveTeamNotifToUser(user.Email, user.Name, team.Name)
+
+	c.JSON(http.StatusOK, gin.H{"message": "You have left the team successfully."})
+}
+
 // GetTeamByID retrieves a team by ID.
 func (tc *TeamController) GetTeamByID(c *gin.Context) {
 	// Get the team ID from the route parameter
