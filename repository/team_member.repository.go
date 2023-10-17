@@ -79,3 +79,12 @@ func (tmr *TeamMemberRepository) GetTeamMembersByTeamAndRole(teamID uint, role s
 	}
 	return teamMembers, nil
 }
+
+// GetAdminTeamByTeamID retrieves all Admins and Super Admins for a given TeamID.
+func (tmr *TeamMemberRepository) GetAdminTeamByTeamID(teamID uint) ([]models.TeamMember, error) {
+	var teamMembers []models.TeamMember
+	if err := tmr.db.Find(&teamMembers, "team_id = ? AND (role = ? OR role = ?)", teamID, models.AdminRole, models.SuperAdminRole).Error; err != nil {
+		return nil, err
+	}
+	return teamMembers, nil
+}

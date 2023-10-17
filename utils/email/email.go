@@ -156,3 +156,17 @@ func SendForgotPasswordMail(toEmail string, userID uint, userName string) error 
 	forgotRepo.CreateForgotPassword(entry)
 	return nil
 }
+
+// SendRequestNotifToTeamAdmins sends a notification email to all admins of a team
+func SendRequestNotifToTeamAdmins(toEmail []string, userName string, userEmail string, teamName string) error {
+	content := userName + " has requested to join your team " + teamName + ". Please accept or reject the request on the Attendance App."
+	subject := "Team Join Request."
+
+	for _, email := range toEmail {
+		err := GenericSendMail(subject, content, email, teamName+" Admin Team")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

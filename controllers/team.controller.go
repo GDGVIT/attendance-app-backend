@@ -7,6 +7,7 @@ import (
 	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
 	"github.com/GDGVIT/attendance-app-backend/repository"
+	"github.com/GDGVIT/attendance-app-backend/utils/email"
 	"github.com/GDGVIT/attendance-app-backend/utils/team"
 	"github.com/gin-gonic/gin"
 )
@@ -148,6 +149,27 @@ func (tc *TeamController) JoinTeamByInviteCode(c *gin.Context) {
 			logger.Errorf("Failed to create team request: " + err.Error())
 			return
 		}
+
+		adminTeam, err := tc.teamMemberRepo.GetAdminTeamByTeamID(team.ID)
+		// list of admin team emails
+		var adminEmails []string
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve admin team"})
+			logger.Errorf("Failed to retrieve admin team: " + err.Error())
+			return
+		}
+		for _, admin := range adminTeam {
+			adminUser, err := tc.userRepo.GetUserByID(admin.UserID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve admin user"})
+				logger.Errorf("Failed to retrieve admin user: " + err.Error())
+				return
+			}
+			adminEmails = append(adminEmails, adminUser.Email)
+		}
+
+		// Email the admins and super admins of the team
+		email.SendRequestNotifToTeamAdmins(adminEmails, user.Name, user.Email, team.Name)
 
 		c.JSON(http.StatusCreated, gin.H{"message": "Team request created", "protected": true})
 		return
