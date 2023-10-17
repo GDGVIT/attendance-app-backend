@@ -90,3 +90,8 @@ func (ter *TeamEntryRequestRepository) GetTeamEntryRequestByTeamIDAndUserID(team
 func (ter *TeamEntryRequestRepository) DeleteTeamEntryRequestByID(requestID uint) error {
 	return ter.db.Where("id = ?", requestID).Delete(&models.TeamEntryRequest{}).Error
 }
+
+// DeleteTeamEntryRequestsByUserID deletes all TeamEntryRequests for a given UserID.
+func (ter *TeamEntryRequestRepository) DeleteTeamEntryRequestsByUserID(userID uint) error {
+	return ter.db.Where("user_id = ?", userID).Delete(&models.TeamEntryRequest{}).Error
+}

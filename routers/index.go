@@ -122,4 +122,3 @@ func RegisterRoutes(route *gin.Engine) {
 
 // TODO handover to new team superadmin
 // TODO delete team
-// TODO remove member

@@ -101,3 +101,8 @@ func (tmr *TeamMemberRepository) UpdateTeamMemberRole(teamMemberID uint, role st
 	}
 	return teamMember, nil
 }
+
+// DeleteTeamMemberByUserID deletes all TeamMembers for a given UserID.
+func (tmr *TeamMemberRepository) DeleteTeamMemberByUserID(userID uint) error {
+	return tmr.db.Where("user_id = ?", userID).Delete(&models.TeamMember{}).Error
+}

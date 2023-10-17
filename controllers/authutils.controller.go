@@ -218,6 +218,40 @@ func (uc *UserController) DeleteAccount(c *gin.Context) {
 			return
 		}
 
+		// should not allow user deletion if user is a super admin for some team(s)
+		teamMembers, err := uc.teamMemberRepo.GetTeamMembersByUserID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user-fetch", "message": "Failed to fetch user"})
+			return
+		}
+		for _, teamMember := range teamMembers {
+			if teamMember.Role == models.SuperAdminRole {
+				c.JSON(http.StatusForbidden, gin.H{"error": "user-role", "message": "Cannot delete account. User is a super admin for some team(s)."})
+				return
+			}
+		}
+
+		// delete forgot_password entries for user
+		err = uc.forgotRepo.DeleteForgotPasswordByEmail(useremail)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Failed to delete user."})
+			logger.Errorf("Error while deleting forgot password entry: " + err.Error())
+		}
+
+		// delete team_entry_reqs for user
+		err = uc.teamEntryRequestRepo.DeleteTeamEntryRequestByID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Failed to delete user."})
+			logger.Errorf("Error while deleting team entry request: " + err.Error())
+		}
+
+		// delete team_members for user
+		err = uc.teamMemberRepo.DeleteTeamMemberByUserID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Failed to delete user."})
+			logger.Errorf("Error while deleting team member: " + err.Error())
+		}
+
 		err = uc.userRepo.DeleteUserByID(user.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "deletion", "message": "Failed to delete user."})
