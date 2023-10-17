@@ -39,10 +39,10 @@ func NewUserController() *UserController {
 // RegisterUser handles user registration
 func (uc *UserController) RegisterUser(c *gin.Context) {
 	var registerData struct {
-		Email        string `json:"email" binding:"required"`
+		Email        string `json:"email" binding:"required,email"`
 		Name         string `json:"name" binding:"required"`
 		Password     string `json:"password" binding:"required"`
-		ProfileImage string `json:"profile_image"`
+		ProfileImage string `json:"profile_image" binding:"url"`
 	}
 
 	if err := c.ShouldBindJSON(&registerData); err != nil {
@@ -110,12 +110,12 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 // Login handles user login
 func (uc *UserController) Login(c *gin.Context) {
 	var loginData struct {
-		Email    string `json:"email" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&loginData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": "Improper JSON."})
 		return
 	}
 

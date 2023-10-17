@@ -135,8 +135,12 @@ func (tc *TeamController) UpdateTeam(c *gin.Context) {
 		return
 	}
 
-	team.Name = teamUpdateRequest.Name
-	team.Description = teamUpdateRequest.Description
+	if teamUpdateRequest.Name != "" {
+		team.Name = teamUpdateRequest.Name
+	}
+	if teamUpdateRequest.Description != "" {
+		team.Description = teamUpdateRequest.Description
+	}
 
 	// Save the updated team
 	updatedTeam, err := tc.teamRepo.UpdateTeam(team)
