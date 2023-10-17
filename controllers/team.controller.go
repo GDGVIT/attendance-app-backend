@@ -491,6 +491,63 @@ func (tc *TeamController) UpdateTeamRequestStatus(c *gin.Context) {
 
 // --- Can be done by team super admin ---
 
+// KickTeamMember kicks a team member from the team.
+func (tc *TeamController) KickTeamMember(c *gin.Context) {
+	// Get the member ID from the route parameter
+	memberID, err := strconv.Atoi(c.Param("memberID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid member ID"})
+		return
+	}
+
+	// Get the team ID from the route parameter
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get the member
+	teamMember, err := tc.teamMemberRepo.GetTeamMemberByID(uint(teamID), uint(memberID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Member not found"})
+		return
+	}
+
+	// Cannot kick super admin
+	if teamMember.Role == models.SuperAdminRole {
+		c.JSON(http.StatusForbidden, gin.H{"error": "super-admin-kick", "message": "You cannot kick the super admin of the team. Please handover the team super admin position to an admin, or delete the team instead."})
+		return
+	}
+
+	// Get the user being kicked
+	user, err := tc.userRepo.GetUserByID(teamMember.UserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+		return
+	}
+
+	// Get the team
+	team, err := tc.teamRepo.GetTeamByID(uint(teamID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	// Delete the team member
+	err = tc.teamMemberRepo.DeleteTeamMember(team.ID, user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete team member"})
+		logger.Errorf("Failed to delete team member: " + err.Error())
+		return
+	}
+
+	// Email the user
+	email.SendKickNotifToUser(user.Email, user.Name, team.Name)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Team member kicked."})
+}
+
 // PromoteOrDemoteTeamMember promotes or demotes a team member to admin or member, Patch /team/:teamID/members/:memberID?promote=true
 func (tc *TeamController) PromoteOrDemoteTeamMember(c *gin.Context) {
 	// Get the member ID from the route parameter

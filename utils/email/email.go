@@ -182,3 +182,15 @@ func SendRequestStatusNotifToUser(toEmail string, userName string, teamName stri
 	}
 	return nil
 }
+
+// SendKickNotifToUser
+func SendKickNotifToUser(toEmail string, userName string, teamName string) error {
+	content := "You have been removed from the team " + teamName + " by its Admin Team."
+	subject := "Team Kicked."
+
+	err := GenericSendMail(subject, content, toEmail, userName)
+	if err != nil {
+		return err
+	}
+	return nil
+}

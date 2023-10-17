@@ -114,6 +114,9 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// leave a team
 		team.DELETE("/:teamID/leave", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), teamController.LeaveTeam)
+
+		// kick a member
+		team.DELETE("/:teamID/members/:memberID", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.KickTeamMember)
 	}
 }
 
