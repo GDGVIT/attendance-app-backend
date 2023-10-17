@@ -76,3 +76,17 @@ func (ter *TeamEntryRequestRepository) GetTeamEntryRequestsByTeamIDAndStatus(tea
 	}
 	return requests, nil
 }
+
+// GetTeamEntryRequestByTeamIDAndUserID retrieves a TeamEntryRequest by its TeamID and UserID.
+func (ter *TeamEntryRequestRepository) GetTeamEntryRequestByTeamIDAndUserID(teamID, userID uint) (models.TeamEntryRequest, error) {
+	var request models.TeamEntryRequest
+	if err := ter.db.First(&request, "team_id = ? AND user_id = ?", teamID, userID).Error; err != nil {
+		return models.TeamEntryRequest{}, err
+	}
+	return request, nil
+}
+
+// DeleteTeamEntryRequestByID deletes a TeamEntryRequest by its ID.
+func (ter *TeamEntryRequestRepository) DeleteTeamEntryRequestByID(requestID uint) error {
+	return ter.db.Where("id = ?", requestID).Delete(&models.TeamEntryRequest{}).Error
+}

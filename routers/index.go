@@ -120,5 +120,3 @@ func RegisterRoutes(route *gin.Engine) {
 // TODO handover to new team superadmin
 // TODO delete team
 // TODO remove member
-
-// TODO request cannot be made if pending or accepted, and earlier request to be deleted if it was rejected

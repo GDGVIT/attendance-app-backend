@@ -149,13 +149,29 @@ func (tc *TeamController) JoinTeamByInviteCode(c *gin.Context) {
 
 	// Check if the team is protected
 	if team.Protected {
+		// Check if the user has already requested to join the team
+		existingTeamRequest, err := tc.teamEntryRequestRepo.GetTeamEntryRequestByTeamIDAndUserID(team.ID, user.ID)
+		if err == nil {
+			if existingTeamRequest.Status == models.TeamEntryRequestPending {
+				c.JSON(http.StatusConflict, gin.H{"error": "User has already requested to join the team"})
+				return
+			} else if existingTeamRequest.Status == models.TeamEntryRequestRejected || existingTeamRequest.Status == models.TeamEntryRequestApproved {
+				err = tc.teamEntryRequestRepo.DeleteTeamEntryRequestByID(existingTeamRequest.ID)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete earlier request"})
+					logger.Errorf("Failed to delete earlier request: " + err.Error())
+					return
+				}
+			}
+		}
+
 		// Create a TeamRequest
 		teamRequest := models.TeamEntryRequest{
 			TeamID: team.ID,
 			UserID: user.ID,
 		}
 
-		_, err := tc.teamEntryRequestRepo.CreateTeamEntryRequest(teamRequest)
+		_, err = tc.teamEntryRequestRepo.CreateTeamEntryRequest(teamRequest)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create team request"})
 			logger.Errorf("Failed to create team request: " + err.Error())
