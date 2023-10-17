@@ -52,3 +52,12 @@ func (tr *TeamRepository) UpdateTeam(team models.Team) (models.Team, error) {
 func (tr *TeamRepository) DeleteTeamByID(id uint) error {
 	return tr.db.Unscoped().Delete(&models.Team{}, id).Error
 }
+
+// GetUnprotectedTeams retrieves all unprotected teams.
+func (tr *TeamRepository) GetUnprotectedTeams() ([]models.Team, error) {
+	var teams []models.Team
+	if err := tr.db.Find(&teams, "protected = ?", false).Error; err != nil {
+		return nil, err
+	}
+	return teams, nil
+}

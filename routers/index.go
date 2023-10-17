@@ -79,6 +79,9 @@ func RegisterRoutes(route *gin.Engine) {
 	{
 		teamController := controllers.NewTeamController()
 
+		// Get all unprotected teams
+		team.GET("/", middleware.BaseAuthMiddleware(), teamController.GetUnprotectedTeams)
+
 		// Create a team
 		team.POST("/", middleware.BaseAuthMiddleware(), teamController.CreateTeam)
 

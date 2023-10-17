@@ -29,6 +29,18 @@ func NewTeamController() *TeamController {
 
 // --- Can be done by any logged in user ---
 
+// GetUnprotectedTeams retrieves all unprotected teams.
+func (tc *TeamController) GetUnprotectedTeams(c *gin.Context) {
+	// Retrieve the unprotected teams
+	teams, err := tc.teamRepo.GetUnprotectedTeams()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve teams"})
+		return
+	}
+
+	c.JSON(http.StatusOK, teams)
+}
+
 // CreateTeam creates a new team in the database and designates creator as super admin.
 func (tc *TeamController) CreateTeam(c *gin.Context) {
 	// Extract data from the JSON request
