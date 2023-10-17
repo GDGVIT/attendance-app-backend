@@ -102,7 +102,8 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 		return
 	}
 	if emptyUser.ID != existingUser.ID {
-		c.JSON(http.StatusCreated, gin.H{"message": "Email-Password login method added."})
+		email.SendRegistrationMail("Account Verification.", "Please visit the following link to verify your account: ", user.Email, user.ID, user.Name, true)
+		c.JSON(http.StatusCreated, gin.H{"message": "Email-Password login method added. Verification email sent!"})
 	}
 }
 
@@ -263,7 +264,7 @@ func (uc *UserController) GoogleCallback(c *gin.Context) {
 	user, _ := uc.userRepo.GetUserByEmail(userInfo.Email)
 	var emptyUser models.User
 	if user.ID == emptyUser.ID {
-		user = models.User{Name: userInfo.Name, Email: userInfo.Email, ProfileImage: userInfo.Picture, Verified: true}
+		user = models.User{Name: userInfo.Name, Email: userInfo.Email, ProfileImage: userInfo.Picture}
 		if err := uc.userRepo.CreateUser(user); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user."})
 			return
