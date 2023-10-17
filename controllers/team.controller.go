@@ -192,6 +192,85 @@ func (tc *TeamController) JoinTeamByInviteCode(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Team member created", "protected": false})
 }
 
+// --- Can be done by team member, admin and super admin ---
+
+// GetTeamByID retrieves a team by ID.
+func (tc *TeamController) GetTeamByID(c *gin.Context) {
+	// Get the team ID from the route parameter
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get the team
+	team, err := tc.teamRepo.GetTeamByID(uint(teamID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, team)
+}
+
+// GetTeamMembers retrieves all team members for a given team.
+func (tc *TeamController) GetTeamMembers(c *gin.Context) {
+	// Get the team ID from the route parameter
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get the team
+	_, err = tc.teamRepo.GetTeamByID(uint(teamID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	// Get role filter from query params
+	role := c.Query("role")
+
+	var teamMembers []models.TeamMember
+	if role == "" {
+		// Retrieve the team members
+		teamMembers, err = tc.teamMemberRepo.GetTeamMembersByTeamID(uint(teamID))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve team members"})
+			return
+		}
+	} else {
+		// Retrieve the team members by role
+		teamMembers, err = tc.teamMemberRepo.GetTeamMembersByTeamAndRole(uint(teamID), role)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve team members"})
+			return
+		}
+	}
+
+	// Create a slice of users, with corresponding roles from teammembers added to each
+	users := make([]struct {
+		User models.User
+		Role string
+	}, len(teamMembers))
+
+	// Populate the teamMembers slice with the team members and their corresponding users
+	for i, teamMember := range teamMembers {
+		user, err := tc.userRepo.GetUserByID(teamMember.UserID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+			return
+		}
+		users[i] = struct {
+			User models.User
+			Role string
+		}{user, teamMember.Role}
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
 // --- Can be done by team admin and super admin ---
 
 // GetTeamRequests retrieves all team requests for a given team, and allows filtering by status.

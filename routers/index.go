@@ -99,10 +99,14 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Accept or reject a request Patch /team/:teamID/requests/:requestID by admin/superadmin
 		team.PATCH("/:teamID/requests/:requestID", middleware.BaseAuthMiddleware(), middleware.AuthorizeAdmin(), teamController.UpdateTeamRequestStatus)
+
+		// same as /team/invite/:inviteCode, for uniformity with next routes
+		team.GET("/:teamID", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), teamController.GetTeamByID)
+
+		// get team members, query ?role=member/admin/super_admin
+		team.GET("/:teamID/members", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), teamController.GetTeamMembers)
 	}
 
-	// TODO Get /team/:teamID team info, visible to all team members (similar to /team/invite/:inviteCode)
-	// TODO Get /team/:teamID/members team members, visible to all team members
 	// TODO Patch /team/:teamID/members/:memberID?promote=true change member role to member/admin, visible to superadmin only
 
 	// non critical
