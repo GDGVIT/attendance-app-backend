@@ -43,7 +43,7 @@ func (uc *UserController) ForgotPasswordRequest(c *gin.Context) {
 // SetNewPassword sets a new password for the user after forgot password request
 func (uc *UserController) SetNewPassword(c *gin.Context) {
 	var forgotPasswordInput struct {
-		NewPassword string `json:"new_password"`
+		NewPassword string `json:"new_password" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&forgotPasswordInput); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": "Improper JSON."})
@@ -116,8 +116,8 @@ func (uc *UserController) SetNewPassword(c *gin.Context) {
 // ResetPasswordController handles the reset password by logged in user
 func (uc *UserController) ResetPassword(c *gin.Context) {
 	var resetPasswordInput struct {
-		OldPassword string `json:"old_password"`
-		NewPassword string `json:"new_password"`
+		OldPassword string `json:"old_password" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&resetPasswordInput); err != nil {

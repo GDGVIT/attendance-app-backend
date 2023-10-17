@@ -39,9 +39,9 @@ func NewUserController() *UserController {
 // RegisterUser handles user registration
 func (uc *UserController) RegisterUser(c *gin.Context) {
 	var registerData struct {
-		Email        string `json:"email"`
-		Name         string `json:"name"`
-		Password     string `json:"password"`
+		Email        string `json:"email" binding:"required"`
+		Name         string `json:"name" binding:"required"`
+		Password     string `json:"password" binding:"required"`
 		ProfileImage string `json:"profile_image"`
 	}
 
@@ -109,8 +109,8 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 // Login handles user login
 func (uc *UserController) Login(c *gin.Context) {
 	var loginData struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&loginData); err != nil {
