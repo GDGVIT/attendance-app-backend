@@ -380,6 +380,11 @@ func (tc *TeamController) UpdateTeamRequestStatus(c *gin.Context) {
 		return
 	}
 
+	if requestUpdateRequest.Status != models.TeamEntryRequestApproved && requestUpdateRequest.Status != models.TeamEntryRequestRejected {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status", "message": "You can set the status to approved or rejected."})
+		return
+	}
+
 	// Update the request status
 	updatedRequest, err := tc.teamEntryRequestRepo.UpdateTeamEntryRequestStatus(request.ID, requestUpdateRequest.Status)
 	if err != nil {
@@ -417,6 +422,73 @@ func (tc *TeamController) UpdateTeamRequestStatus(c *gin.Context) {
 }
 
 // --- Can be done by team super admin ---
+
+// PromoteOrDemoteTeamMember promotes or demotes a team member to admin or member, Patch /team/:teamID/members/:memberID?promote=true
+func (tc *TeamController) PromoteOrDemoteTeamMember(c *gin.Context) {
+	// Get the member ID from the route parameter
+	memberID, err := strconv.Atoi(c.Param("memberID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid member ID"})
+		return
+	}
+
+	// Get the team ID from the route parameter
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get the member
+	teamMember, err := tc.teamMemberRepo.GetTeamMemberByID(uint(teamID), uint(memberID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Member not found"})
+		return
+	}
+
+	// Get the promote flag from the query params
+	promote := c.Query("promote")
+
+	if promote != "true" && promote != "false" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid promote flag", "message": "You can set the promote flag to true or false."})
+		return
+	}
+
+	// Update the team member's role
+	var updatedTeamMember models.TeamMember
+	if promote == "true" {
+		updatedTeamMember, err = tc.teamMemberRepo.UpdateTeamMemberRole(teamMember.ID, models.AdminRole)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update team member"})
+			return
+		}
+	} else {
+		updatedTeamMember, err = tc.teamMemberRepo.UpdateTeamMemberRole(teamMember.ID, models.MemberRole)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update team member"})
+			return
+		}
+	}
+
+	// Get the user being promoted/demoted
+	// user, err := tc.userRepo.GetUserByID(teamMember.UserID)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+	// 	return
+	// }
+
+	// Get the team
+	// team, err := tc.teamRepo.GetTeamByID(uint(teamID))
+	// if err != nil {
+	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+	// 	return
+	// }
+
+	// Email the user
+	// email.SendPromotionNotifToUser(user.Email, user.Name, team.Name, updatedTeamMember.Role)
+
+	c.JSON(http.StatusOK, updatedTeamMember)
+}
 
 // UpdateTeam updates a team's name and description.
 func (tc *TeamController) UpdateTeam(c *gin.Context) {

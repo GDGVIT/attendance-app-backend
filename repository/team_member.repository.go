@@ -88,3 +88,16 @@ func (tmr *TeamMemberRepository) GetAdminTeamByTeamID(teamID uint) ([]models.Tea
 	}
 	return teamMembers, nil
 }
+
+// UpdateTeamMemberRole updates the role of a TeamMember.
+func (tmr *TeamMemberRepository) UpdateTeamMemberRole(teamMemberID uint, role string) (models.TeamMember, error) {
+	var teamMember models.TeamMember
+	if err := tmr.db.First(&teamMember, teamMemberID).Error; err != nil {
+		return models.TeamMember{}, err
+	}
+	teamMember.Role = role
+	if err := tmr.db.Save(&teamMember).Error; err != nil {
+		return models.TeamMember{}, err
+	}
+	return teamMember, nil
+}

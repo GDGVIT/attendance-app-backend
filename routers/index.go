@@ -108,10 +108,8 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// get team members, query ?role=member/admin/super_admin
 		team.GET("/:teamID/members", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), teamController.GetTeamMembers)
+
+		// promote/demote a member to admin/member, visible to superadmin only
+		team.PATCH("/:teamID/members/:memberID", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.PromoteOrDemoteTeamMember)
 	}
-
-	// TODO Patch /team/:teamID/members/:memberID?promote=true change member role to member/admin, visible to superadmin only
-
-	// non critical
-	// TODO Get /team all unprotected teams
 }
