@@ -17,14 +17,6 @@ func RegisterRoutes(route *gin.Engine) {
 
 	v1 := route.Group("/v1")
 
-	example := v1.Group("/example")
-	{
-		example.GET("/", controllers.GetData)
-		example.POST("/", controllers.Create)
-		example.GET("/:pid", controllers.GetSingleData)
-		example.PATCH("/:pid", controllers.Update)
-	}
-
 	auth := v1.Group("/auth") // Create an /auth/ group
 	{
 		userController := controllers.NewUserController() // Create an instance of the UserController
