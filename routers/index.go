@@ -67,6 +67,9 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Update my details
 		user.PATCH("/me", middleware.BaseAuthMiddleware(), userController.UpdateMyDetails)
+
+		// Get my teams
+		user.GET("/me/teams", middleware.BaseAuthMiddleware(), userController.GetMyTeams)
 	}
 
 	team := v1.Group("/team")
@@ -89,7 +92,6 @@ func RegisterRoutes(route *gin.Engine) {
 		team.POST("/invite/:inviteCode/join", middleware.BaseAuthMiddleware(), teamController.JoinTeamByInviteCode)
 	}
 
-	// TODO Get /me/teams teams user is in
 	// TODO Get /me/requests requests user has sent
 	// TODO Get /team/:teamID/requests requests for a team, visible to admin/superadmin
 	// TODO Patch /team/:teamID/requests/:requestID accept/reject a request, visible to admin/superadmin

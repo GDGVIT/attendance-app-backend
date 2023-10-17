@@ -58,3 +58,53 @@ func (uc *UserController) UpdateMyDetails(c *gin.Context) {
 	// Respond with the updated user details
 	c.JSON(http.StatusOK, gin.H{"message": "User details updated successfully."})
 }
+
+// GetMyTeams returns the teams the authenticated user is a member of, along with their role in that team.
+func (uc *UserController) GetMyTeams(c *gin.Context) {
+	// Retrieve the authenticated user from the context
+	currentUser, _ := c.Get("user")
+
+	// Type-assert the user to the models.User struct
+	user := currentUser.(*models.User)
+
+	// Get role filter from query params
+	role := c.Query("role")
+
+	// Retrieve the teams the user is a member of
+	var teamMembers []models.TeamMember
+	err := error(nil)
+	if role == "" {
+		teamMembers, err = uc.teamMemberRepo.GetTeamMembersByUserID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve teams"})
+			return
+		}
+	} else {
+		teamMembers, err = uc.teamMemberRepo.GetTeamMembersByUserAndRole(user.ID, role)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve teams"})
+			return
+		}
+	}
+
+	// Create a slice of {team: models.Team{}, role: string} objects
+	teams := make([]struct {
+		Team models.Team
+		Role string
+	}, len(teamMembers))
+
+	// Populate the teams slice with the teams the user is a member of
+	for i, teamMember := range teamMembers {
+		team, err := uc.teamRepo.GetTeamByID(teamMember.TeamID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve teams"})
+			return
+		}
+
+		teams[i].Team = team
+		teams[i].Role = teamMember.Role
+	}
+
+	// Respond with the teams
+	c.JSON(http.StatusOK, teams)
+}

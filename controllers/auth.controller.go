@@ -24,6 +24,8 @@ type UserController struct {
 	deletionRepo     *repository.DeletionConfirmationRepository
 	passwordAuthRepo *repository.PasswordAuthRepository
 	authProviderRepo *repository.AuthProviderRepository
+	teamMemberRepo   *repository.TeamMemberRepository
+	teamRepo         *repository.TeamRepository
 }
 
 func NewUserController() *UserController {
@@ -33,7 +35,9 @@ func NewUserController() *UserController {
 	deletionRepo := repository.NewDeletionConfirmationRepository()
 	passwordAuthRepo := repository.NewPasswordAuthRepository()
 	authProviderRepo := repository.NewAuthProviderRepository()
-	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo, passwordAuthRepo, authProviderRepo}
+	teamMeberRepo := repository.NewTeamMemberRepository()
+	teamRepo := repository.NewTeamRepository()
+	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo, passwordAuthRepo, authProviderRepo, teamMeberRepo, teamRepo}
 }
 
 // RegisterUser handles user registration
