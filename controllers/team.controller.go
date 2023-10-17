@@ -170,7 +170,66 @@ func (tc *TeamController) JoinTeamByInviteCode(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Team member created", "protected": false})
 }
 
-// --- Can be done by super admin ---
+// --- Can be done by team admin and super admin ---
+
+// GetTeamRequests retrieves all team requests for a given team, and allows filtering by status.
+func (tc *TeamController) GetTeamRequests(c *gin.Context) {
+	// Get the team ID from the route parameter
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get the team
+	_, err = tc.teamRepo.GetTeamByID(uint(teamID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	// Get status filter from query params
+	status := c.Query("status")
+
+	// Retrieve the team requests
+	var requests []models.TeamEntryRequest
+	if status == "" {
+		requests, err = tc.teamEntryRequestRepo.GetTeamEntryRequestsByTeamID(uint(teamID))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve team requests"})
+			return
+		}
+	} else {
+		requests, err = tc.teamEntryRequestRepo.GetTeamEntryRequestsByTeamIDAndStatus(uint(teamID), status)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve team requests"})
+			return
+		}
+	}
+
+	// Create a slice of {request: models.TeamEntryRequest{}, user: models.User{}} objects
+	requestsWithUsers := make([]struct {
+		Request models.TeamEntryRequest
+		User    models.User
+	}, len(requests))
+
+	// Populate the requests slice with the requests and their corresponding users
+	for i, request := range requests {
+		user, err := tc.userRepo.GetUserByID(request.UserID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+			return
+		}
+		requestsWithUsers[i] = struct {
+			Request models.TeamEntryRequest
+			User    models.User
+		}{request, user}
+	}
+
+	c.JSON(http.StatusOK, requestsWithUsers)
+}
+
+// --- Can be done by team super admin ---
 
 // UpdateTeam updates a team's name and description.
 func (tc *TeamController) UpdateTeam(c *gin.Context) {

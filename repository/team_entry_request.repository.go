@@ -59,3 +59,12 @@ func (ter *TeamEntryRequestRepository) GetTeamEntryRequestsByUserIDAndStatus(use
 	}
 	return requests, nil
 }
+
+// GetTeamEntryRequestsByTeamIDAndStatus retrieves all TeamEntryRequests for a given TeamID and status.
+func (ter *TeamEntryRequestRepository) GetTeamEntryRequestsByTeamIDAndStatus(teamID uint, status string) ([]models.TeamEntryRequest, error) {
+	var requests []models.TeamEntryRequest
+	if err := ter.db.Find(&requests, "team_id = ? AND status = ?", teamID, status).Error; err != nil {
+		return nil, err
+	}
+	return requests, nil
+}

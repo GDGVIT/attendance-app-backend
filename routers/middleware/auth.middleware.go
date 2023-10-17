@@ -59,3 +59,23 @@ func AuthorizeSuperAdmin() gin.HandlerFunc {
 		}
 	}
 }
+
+// AuthorizeAdmin checks if the user is a super_admin or admin for the given team
+func AuthorizeAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Check if the user is a super_admin
+		user, _ := c.Get("user") // Assuming you have user information in the context
+		teamID, _ := strconv.Atoi(c.Param("teamID"))
+		// Check the user's role and permissions for the team
+		teamMemberRepo := repository.NewTeamMemberRepository()
+		teamMember, err := teamMemberRepo.GetTeamMemberByID(uint(teamID), user.(*models.User).ID)
+		if err == nil && (teamMember.Role == models.SuperAdminRole || teamMember.Role == models.AdminRole) {
+			// User is authorized as superadmin for given team, proceed to the next handler
+			c.Next()
+		} else {
+			// User is not authorized, return an error response
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "You are not authorized to do that action on this team."})
+			c.Abort()
+		}
+	}
+}

@@ -93,10 +93,11 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Join a team
 		team.POST("/invite/:inviteCode/join", middleware.BaseAuthMiddleware(), teamController.JoinTeamByInviteCode)
+
+		// Get team requests, query ?status=accepted/rejected/pending
+		team.GET("/:teamID/requests", middleware.BaseAuthMiddleware(), middleware.AuthorizeAdmin(), teamController.GetTeamRequests)
 	}
 
-	// TODO Get /me/requests requests user has sent
-	// TODO Get /team/:teamID/requests requests for a team, visible to admin/superadmin
 	// TODO Patch /team/:teamID/requests/:requestID accept/reject a request, visible to admin/superadmin
 	// TODO Get /team/:teamID team info, visible to all team members (similar to /team/invite/:inviteCode)
 	// TODO Get /team/:teamID/members team members, visible to all team members
