@@ -75,5 +75,11 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Get a team by invite code
 		team.GET("/invite/:inviteCode", middleware.BaseAuthMiddleware(), teamController.GetTeamByInviteCode)
+
+		// Update a team
+		team.PATCH("/:teamID", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.UpdateTeam)
+
+		// Regenerate invite code
+		team.GET("/:teamID/regenerate-invite", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.RegenerateInviteCode)
 	}
 }
