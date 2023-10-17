@@ -18,14 +18,15 @@ import (
 )
 
 type UserController struct {
-	userRepo         *repository.UserRepository
-	forgotRepo       *repository.ForgotPasswordRepository
-	verifRepo        *repository.VerificationEntryRepository
-	deletionRepo     *repository.DeletionConfirmationRepository
-	passwordAuthRepo *repository.PasswordAuthRepository
-	authProviderRepo *repository.AuthProviderRepository
-	teamMemberRepo   *repository.TeamMemberRepository
-	teamRepo         *repository.TeamRepository
+	userRepo             *repository.UserRepository
+	forgotRepo           *repository.ForgotPasswordRepository
+	verifRepo            *repository.VerificationEntryRepository
+	deletionRepo         *repository.DeletionConfirmationRepository
+	passwordAuthRepo     *repository.PasswordAuthRepository
+	authProviderRepo     *repository.AuthProviderRepository
+	teamMemberRepo       *repository.TeamMemberRepository
+	teamRepo             *repository.TeamRepository
+	teamEntryRequestRepo *repository.TeamEntryRequestRepository
 }
 
 func NewUserController() *UserController {
@@ -37,7 +38,8 @@ func NewUserController() *UserController {
 	authProviderRepo := repository.NewAuthProviderRepository()
 	teamMeberRepo := repository.NewTeamMemberRepository()
 	teamRepo := repository.NewTeamRepository()
-	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo, passwordAuthRepo, authProviderRepo, teamMeberRepo, teamRepo}
+	teamEntryRequestRepo := repository.NewTeamEntryRequestRepository()
+	return &UserController{userRepo, forgotRepo, verifRepo, deletionRepo, passwordAuthRepo, authProviderRepo, teamMeberRepo, teamRepo, teamEntryRequestRepo}
 }
 
 // RegisterUser handles user registration

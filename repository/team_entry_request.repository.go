@@ -41,3 +41,21 @@ func (ter *TeamEntryRequestRepository) UpdateTeamEntryRequestStatus(requestID ui
 	}
 	return request, nil
 }
+
+// GetTeamEntryRequestsByUserID retrieves all TeamEntryRequests for a given UserID.
+func (ter *TeamEntryRequestRepository) GetTeamEntryRequestsByUserID(userID uint) ([]models.TeamEntryRequest, error) {
+	var requests []models.TeamEntryRequest
+	if err := ter.db.Find(&requests, "user_id = ?", userID).Error; err != nil {
+		return nil, err
+	}
+	return requests, nil
+}
+
+// GetTeamEntryRequestsByUserIDAndStatus retrieves all TeamEntryRequests for a given UserID and status.
+func (ter *TeamEntryRequestRepository) GetTeamEntryRequestsByUserIDAndStatus(userID uint, status string) ([]models.TeamEntryRequest, error) {
+	var requests []models.TeamEntryRequest
+	if err := ter.db.Find(&requests, "user_id = ? AND status = ?", userID, status).Error; err != nil {
+		return nil, err
+	}
+	return requests, nil
+}

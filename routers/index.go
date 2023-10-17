@@ -68,8 +68,11 @@ func RegisterRoutes(route *gin.Engine) {
 		// Update my details
 		user.PATCH("/me", middleware.BaseAuthMiddleware(), userController.UpdateMyDetails)
 
-		// Get my teams
+		// Get my teams, query ?role=member/admin/super_admin
 		user.GET("/me/teams", middleware.BaseAuthMiddleware(), userController.GetMyTeams)
+
+		// Get my team requests, query ?status=accepted/rejected/pending
+		user.GET("/me/requests", middleware.BaseAuthMiddleware(), userController.GetMyRequests)
 	}
 
 	team := v1.Group("/team")

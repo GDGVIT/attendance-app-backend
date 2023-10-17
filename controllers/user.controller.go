@@ -108,3 +108,53 @@ func (uc *UserController) GetMyTeams(c *gin.Context) {
 	// Respond with the teams
 	c.JSON(http.StatusOK, teams)
 }
+
+// GetMyRequests returns the requests the authenticated user has sent to join teams, with a query filter for the status of the requests.
+func (uc *UserController) GetMyRequests(c *gin.Context) {
+	// Retrieve the authenticated user from the context
+	currentUser, _ := c.Get("user")
+
+	// Type-assert the user to the models.User struct
+	user := currentUser.(*models.User)
+
+	// Get status filter from query params
+	status := c.Query("status")
+
+	// Retrieve the requests the user has sent
+	var requests []models.TeamEntryRequest
+	err := error(nil)
+	if status == "" {
+		requests, err = uc.teamEntryRequestRepo.GetTeamEntryRequestsByUserID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve requests"})
+			return
+		}
+	} else {
+		requests, err = uc.teamEntryRequestRepo.GetTeamEntryRequestsByUserIDAndStatus(user.ID, status)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve requests"})
+			return
+		}
+	}
+
+	// Create a slice of {request: models.TeamEntryRequest{}, team: models.Team{}} objects
+	requestsWithTeams := make([]struct {
+		Request models.TeamEntryRequest
+		Team    models.Team
+	}, len(requests))
+
+	// Populate the requestsWithTeams slice with the requests the user has sent
+	for i, request := range requests {
+		team, err := uc.teamRepo.GetTeamByID(request.TeamID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve requests"})
+			return
+		}
+
+		requestsWithTeams[i].Request = request
+		requestsWithTeams[i].Team = team
+	}
+
+	// Respond with the requests
+	c.JSON(http.StatusOK, requestsWithTeams)
+}
