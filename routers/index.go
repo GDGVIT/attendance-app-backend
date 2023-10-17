@@ -65,4 +65,12 @@ func RegisterRoutes(route *gin.Engine) {
 		// Google Callback
 		auth.GET("/google/callback", userController.GoogleCallback)
 	}
+
+	team := v1.Group("/team")
+	{
+		teamController := controllers.NewTeamController()
+
+		// Create a team
+		team.POST("/", middleware.BaseAuthMiddleware(), teamController.CreateTeam)
+	}
 }
