@@ -72,5 +72,8 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Create a team
 		team.POST("/", middleware.BaseAuthMiddleware(), teamController.CreateTeam)
+
+		// Get a team by invite code
+		team.GET("/invite/:inviteCode", middleware.BaseAuthMiddleware(), teamController.GetTeamByInviteCode)
 	}
 }
