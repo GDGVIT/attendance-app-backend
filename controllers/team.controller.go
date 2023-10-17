@@ -12,16 +12,18 @@ import (
 )
 
 type TeamController struct {
-	teamRepo       *repository.TeamRepository
-	teamMemberRepo *repository.TeamMemberRepository
-	userRepo       *repository.UserRepository
+	teamRepo             *repository.TeamRepository
+	teamMemberRepo       *repository.TeamMemberRepository
+	userRepo             *repository.UserRepository
+	teamEntryRequestRepo *repository.TeamEntryRequestRepository
 }
 
 func NewTeamController() *TeamController {
 	teamRepo := repository.NewTeamRepository()
 	teamMemberRepo := repository.NewTeamMemberRepository()
 	userRepo := repository.NewUserRepository()
-	return &TeamController{teamRepo, teamMemberRepo, userRepo}
+	teamEntryRequestRepo := repository.NewTeamEntryRequestRepository()
+	return &TeamController{teamRepo, teamMemberRepo, userRepo, teamEntryRequestRepo}
 }
 
 // --- Can be done by any logged in user ---
@@ -105,6 +107,67 @@ func (tc *TeamController) GetTeamByInviteCode(c *gin.Context) {
 		"team":       team,
 		"superAdmin": superAdmin,
 	})
+}
+
+// JoinTeamByInviteCode joins a team by invite code. If unprotected, the user is added as a member. If protected, the user is added as a pending member via TeamRequests.
+func (tc *TeamController) JoinTeamByInviteCode(c *gin.Context) {
+	// Get the current user
+	currentUser, _ := c.Get("user")
+	user, ok := currentUser.(*models.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get the current user"})
+		return
+	}
+
+	// Get the team by invite code
+	inviteCode := c.Param("inviteCode")
+	team, err := tc.teamRepo.GetTeamByInvite(inviteCode)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid invite."})
+		return
+	}
+
+	// Check if the user is already a member of the team
+	teamMember, err := tc.teamMemberRepo.GetTeamMemberByID(team.ID, user.ID)
+	if err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "User is already a member of the team"})
+		return
+	}
+
+	// Check if the team is protected
+	if team.Protected {
+		// Create a TeamRequest
+		teamRequest := models.TeamEntryRequest{
+			TeamID: team.ID,
+			UserID: user.ID,
+		}
+
+		_, err := tc.teamEntryRequestRepo.CreateTeamEntryRequest(teamRequest)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create team request"})
+			logger.Errorf("Failed to create team request: " + err.Error())
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{"message": "Team request created", "protected": true})
+		return
+	}
+
+	// Create a TeamMember entry
+	teamMember = models.TeamMember{
+		TeamID: team.ID,
+		UserID: user.ID,
+		Role:   models.MemberRole,
+	}
+
+	_, err = tc.teamMemberRepo.CreateTeamMember(teamMember)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create team member"})
+		logger.Errorf("Failed to create team member: " + err.Error())
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Team member created", "protected": false})
 }
 
 // --- Can be done by super admin ---

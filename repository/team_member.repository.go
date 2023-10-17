@@ -23,12 +23,12 @@ func (tmr *TeamMemberRepository) CreateTeamMember(teamMember models.TeamMember) 
 }
 
 // GetTeamMemberByID retrieves a TeamMember record by its primary keys (TeamID and UserID).
-func (tmr *TeamMemberRepository) GetTeamMemberByID(teamID, userID uint) (*models.TeamMember, error) {
+func (tmr *TeamMemberRepository) GetTeamMemberByID(teamID, userID uint) (models.TeamMember, error) {
 	var teamMember models.TeamMember
 	if err := tmr.db.First(&teamMember, "team_id = ? AND user_id = ?", teamID, userID).Error; err != nil {
-		return nil, err
+		return models.TeamMember{}, err
 	}
-	return &teamMember, nil
+	return teamMember, nil
 }
 
 // UpdateTeamMember updates an existing TeamMember record.

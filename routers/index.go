@@ -84,5 +84,19 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Regenerate invite code
 		team.GET("/:teamID/regenerate-invite", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.RegenerateInviteCode)
+
+		// Join a team
+		team.POST("/invite/:inviteCode/join", middleware.BaseAuthMiddleware(), teamController.JoinTeamByInviteCode)
 	}
+
+	// TODO Get /me/teams teams user is in
+	// TODO Get /me/requests requests user has sent
+	// TODO Get /team/:teamID/requests requests for a team, visible to admin/superadmin
+	// TODO Patch /team/:teamID/requests/:requestID accept/reject a request, visible to admin/superadmin
+	// TODO Get /team/:teamID team info, visible to all team members (similar to /team/invite/:inviteCode)
+	// TODO Get /team/:teamID/members team members, visible to all team members
+	// TODO Patch /team/:teamID/members/:memberID?promote=true change member role to member/admin, visible to superadmin only
+
+	// non critical
+	// TODO Get /team all unprotected teams
 }
