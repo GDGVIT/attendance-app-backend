@@ -170,3 +170,15 @@ func SendRequestNotifToTeamAdmins(toEmail []string, userName string, userEmail s
 	}
 	return nil
 }
+
+// SendRequestStatusNotifToUser
+func SendRequestStatusNotifToUser(toEmail string, userName string, teamName string, status string) error {
+	content := "Your request to join the team " + teamName + " has been " + status + "."
+	subject := "Team Join Request."
+
+	err := GenericSendMail(subject, content, toEmail, userName)
+	if err != nil {
+		return err
+	}
+	return nil
+}

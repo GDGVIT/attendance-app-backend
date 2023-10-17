@@ -251,6 +251,80 @@ func (tc *TeamController) GetTeamRequests(c *gin.Context) {
 	c.JSON(http.StatusOK, requestsWithUsers)
 }
 
+// UpdateTeamRequestStatus updates the status of a team request Patch /team/:teamID/requests/:requestID
+func (tc *TeamController) UpdateTeamRequestStatus(c *gin.Context) {
+	// Get the request ID from the route parameter
+	requestID, err := strconv.Atoi(c.Param("requestID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request ID"})
+		return
+	}
+
+	// Get the request
+	request, err := tc.teamEntryRequestRepo.GetTeamEntryRequestByID(uint(requestID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Request not found"})
+		return
+	}
+
+	if request.Status == models.TeamEntryRequestApproved {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "already-approved", "message": "Request has already been approved. You can remove the user from the team instead if you wish to do so."})
+		return
+	}
+
+	// Get the team
+	team, err := tc.teamRepo.GetTeamByID(request.TeamID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	// Get the status from the JSON request
+	var requestUpdateRequest struct {
+		Status string `json:"status" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&requestUpdateRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": "Invalid input."})
+		return
+	}
+
+	// Update the request status
+	updatedRequest, err := tc.teamEntryRequestRepo.UpdateTeamEntryRequestStatus(request.ID, requestUpdateRequest.Status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error(), "message": "Failed to update request"})
+		return
+	}
+
+	// If the request was accepted, add the user as a member of the team
+	if requestUpdateRequest.Status == models.TeamEntryRequestApproved {
+		teamMember := models.TeamMember{
+			TeamID: request.TeamID,
+			UserID: request.UserID,
+			Role:   models.MemberRole,
+		}
+
+		_, err := tc.teamMemberRepo.CreateTeamMember(teamMember)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create team member"})
+			logger.Errorf("Failed to create team member: " + err.Error())
+			return
+		}
+	}
+
+	// Get the user
+	user, err := tc.userRepo.GetUserByID(request.UserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+		return
+	}
+
+	// Email the user
+	email.SendRequestStatusNotifToUser(user.Email, user.Name, team.Name, updatedRequest.Status)
+
+	c.JSON(http.StatusOK, updatedRequest)
+}
+
 // --- Can be done by team super admin ---
 
 // UpdateTeam updates a team's name and description.

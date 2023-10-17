@@ -21,6 +21,14 @@ func (ter *TeamEntryRequestRepository) CreateTeamEntryRequest(request models.Tea
 	return request, nil
 }
 
+func (ter *TeamEntryRequestRepository) GetTeamEntryRequestByID(requestID uint) (models.TeamEntryRequest, error) {
+	var request models.TeamEntryRequest
+	if err := ter.db.First(&request, requestID).Error; err != nil {
+		return models.TeamEntryRequest{}, err
+	}
+	return request, nil
+}
+
 func (ter *TeamEntryRequestRepository) GetTeamEntryRequestsByTeamID(teamID uint) ([]models.TeamEntryRequest, error) {
 	var requests []models.TeamEntryRequest
 	if err := ter.db.Where("team_id = ?", teamID).Find(&requests).Error; err != nil {
