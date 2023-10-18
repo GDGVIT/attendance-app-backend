@@ -124,3 +124,5 @@ func RegisterRoutes(route *gin.Engine) {
 }
 
 // TODO delete team
+// TODO controller-service-repo pattern
+// TODO unit of work pattern

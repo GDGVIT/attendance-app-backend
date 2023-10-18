@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -17,13 +19,21 @@ type Location struct {
 // A meeting can only be deleted if MeetingPeriod = false and AttendancePeriod = false and MeetingOver = false. I.e., meeting hasn't started yet.
 type Meeting struct {
 	gorm.Model
-	TeamID           uint     `gorm:"not null"`
-	Title            string   `gorm:"size:255;not null;"`
-	Description      string   `gorm:"size:255;not null;"`
-	Venue            string   `gorm:"size:255;not null;"`
-	Location         Location `gorm:"embedded"`
-	StartTime        int64    `gorm:"not null"` // Unix timestamp, for info purposes only. Attendance will start on manual start.
-	MeetingPeriod    bool     `gorm:"default:false"`
-	AttendancePeriod bool     `gorm:"default:false"` // Members can mark attendance while true. Can only be started after meeting has started. Is ended alongside meeting end if not ended before.
-	MeetingOver      bool     `gorm:"default:false"` // Will not show meeting on dashboard if true, can be seen in some history tab
+	TeamID           uint      `gorm:"not null"`
+	Title            string    `gorm:"size:255;not null;"`
+	Description      string    `gorm:"size:255;not null;"`
+	Venue            string    `gorm:"size:255;not null;"`
+	Location         Location  `gorm:"embedded"`
+	StartTime        time.Time `gorm:"not null"` // Unix timestamp, for info purposes only. Attendance will start on manual start.
+	MeetingPeriod    bool      `gorm:"default:false"`
+	AttendancePeriod bool      `gorm:"default:false"` // Members can mark attendance while true. Can only be started after meeting has started. Is ended alongside meeting end if not ended before.
+	MeetingOver      bool      `gorm:"default:false"` // Will not show meeting on dashboard if true, can be seen in some history tab
+}
+
+type MeetingAttendance struct {
+	gorm.Model
+	UserID             uint `gorm:"primaryKey"`
+	MeetingID          uint `gorm:"primaryKey"`
+	AttendanceMarkedAt time.Time
+	OnTime             bool `gorm:"default:true"`
 }
