@@ -61,3 +61,16 @@ func (tr *TeamRepository) GetUnprotectedTeams() ([]models.Team, error) {
 	}
 	return teams, nil
 }
+
+// UpdateTeamSuperAdmin changes super admin of a team and returns the updated team.
+func (tr *TeamRepository) UpdateTeamSuperAdmin(teamID, userID uint) (models.Team, error) {
+	var team models.Team
+	if err := tr.db.First(&team, teamID).Error; err != nil {
+		return models.Team{}, err
+	}
+	team.SuperAdminID = userID
+	if err := tr.db.Save(&team).Error; err != nil {
+		return models.Team{}, err
+	}
+	return team, nil
+}

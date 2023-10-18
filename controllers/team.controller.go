@@ -491,6 +491,101 @@ func (tc *TeamController) UpdateTeamRequestStatus(c *gin.Context) {
 
 // --- Can be done by team super admin ---
 
+// HandoverTeamSuperAdmin hands over the super admin position to another team admin.
+func (tc *TeamController) HandoverTeamSuperAdmin(c *gin.Context) {
+	// Get the new super admin ID from the body
+	var newSuperAdmin struct {
+		NewSuperAdminID uint `json:"new_super_admin_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&newSuperAdmin); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": "Invalid input."})
+		return
+	}
+
+	// Get the current user
+	currentUser, _ := c.Get("user")
+	superAdmin, ok := currentUser.(*models.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get the current user"})
+		return
+	}
+
+	// Get the team ID from the route parameter
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get the team
+	team, err := tc.teamRepo.GetTeamByID(uint(teamID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	// Check if the new super admin is a member of the team
+	teamMember, err := tc.teamMemberRepo.GetTeamMemberByID(team.ID, newSuperAdmin.NewSuperAdminID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not-member", "message": "The new super admin must be a member of the team. They must join the team and be promoted to admin before you can designate them super admin."})
+		return
+	}
+
+	// get team member entry for current super admin
+	superAdminTeamMember, err := tc.teamMemberRepo.GetTeamMemberByID(team.ID, superAdmin.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not-member", "message": "The current super admin must be a member of the team."})
+		return
+	}
+
+	// current user is super admin, confirmed via middleware
+	// Check if the new super admin is an admin of the team
+	if teamMember.Role != models.AdminRole {
+		c.JSON(http.StatusForbidden, gin.H{"error": "not-admin", "message": "The new super admin must be an admin of the team. They must be promoted to admin before you can designate them super admin."})
+		return
+	}
+
+	// Update the team super admin
+	updatedTeam, err := tc.teamRepo.UpdateTeamSuperAdmin(team.ID, newSuperAdmin.NewSuperAdminID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update team"})
+		logger.Errorf("Failed to update team: " + err.Error())
+		return
+	}
+
+	// Update the team member role of new super admin
+	_, err = tc.teamMemberRepo.UpdateTeamMemberRole(teamMember.ID, models.SuperAdminRole)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update team member new super admin"})
+		logger.Errorf("Failed to update team member: " + err.Error())
+		return
+	}
+
+	// Update the team member role of old super admin
+	_, err = tc.teamMemberRepo.UpdateTeamMemberRole(superAdminTeamMember.ID, models.AdminRole)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update team member old super admin"})
+		logger.Errorf("Failed to update team member: " + err.Error())
+		return
+	}
+
+	// Get the new super admin
+	// newSuperAdminUser, err := tc.userRepo.GetUserByID(newSuperAdmin.NewSuperAdminID)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve new super admin"})
+	// 	return
+	// }
+
+	// // Email the new super admin
+	// email.SendHandoverNotifToNewSuperAdmin(newSuperAdminUser.Email, newSuperAdminUser.Name, team.Name)
+
+	// // Email the old super admin
+	// email.SendHandoverNotifToOldSuperAdmin(superAdmin.Email, superAdmin.Name, team.Name)
+
+	c.JSON(http.StatusOK, updatedTeam)
+}
+
 // KickTeamMember kicks a team member from the team.
 func (tc *TeamController) KickTeamMember(c *gin.Context) {
 	// Get the member ID from the route parameter

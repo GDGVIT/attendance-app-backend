@@ -117,8 +117,10 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// kick a member
 		team.DELETE("/:teamID/members/:memberID", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.KickTeamMember)
+
+		// handover superadmin to another member
+		team.PATCH("/:teamID/handover", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.HandoverTeamSuperAdmin)
 	}
 }
 
-// TODO handover to new team superadmin
 // TODO delete team
