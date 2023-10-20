@@ -69,4 +69,25 @@ func TestMeetingRepository_CreateMeeting(t *testing.T) {
 	if createdMeeting.Location.Altitude != meeting.Location.Altitude {
 		t.Errorf("Expected Location.Altitude to be %v, got %v", meeting.Location.Altitude, createdMeeting.Location.Altitude)
 	}
+
+	// Test CreateMeeting with invalid meeting (missing Title)
+	meeting = models.Meeting{
+		Description: "Test Meeting Description",
+		TeamID:      1,
+		// StartTime as a time.Time value
+		StartTime: time.Date(2024, 1, 1, 0, 0, 5, 0, time.UTC),
+		Venue:     "Test Venue",
+		// Location as the models.Location struct
+		Location: models.Location{
+			Latitude:  12.345678,
+			Longitude: 98.765432,
+			Altitude:  0,
+		},
+	}
+
+	// Test CreateMeeting function
+	_, err = mr.CreateMeeting(meeting)
+	if err == nil {
+		t.Errorf("CreateMeeting should have returned an error")
+	}
 }

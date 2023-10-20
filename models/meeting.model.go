@@ -20,11 +20,11 @@ type Location struct {
 type Meeting struct {
 	gorm.Model
 	TeamID           uint      `gorm:"not null"`
-	Title            string    `gorm:"size:255;not null;"`
-	Description      string    `gorm:"size:255;not null;"`
-	Venue            string    `gorm:"size:255;not null;"`
+	Title            string    `gorm:"size:255;not null;default:null"`
+	Description      string    `gorm:"size:255;not null;default:null"`
+	Venue            string    `gorm:"size:255;not null;default:null"`
 	Location         Location  `gorm:"embedded"`
-	StartTime        time.Time `gorm:"not null"` // Unix timestamp, for info purposes only. Attendance will start on manual start.
+	StartTime        time.Time `gorm:"not null;default:null"` // Unix timestamp, for info purposes only. Attendance will start on manual start.
 	MeetingPeriod    bool      `gorm:"default:false"`
 	AttendancePeriod bool      `gorm:"default:false"` // Members can mark attendance while true. Can only be started after meeting has started. Is ended alongside meeting end if not ended before.
 	MeetingOver      bool      `gorm:"default:false"` // Will not show meeting on dashboard if true, can be seen in some history tab
@@ -33,8 +33,8 @@ type Meeting struct {
 
 type MeetingAttendance struct {
 	gorm.Model
-	UserID             uint `gorm:"primaryKey"`
-	MeetingID          uint `gorm:"primaryKey"`
-	AttendanceMarkedAt time.Time
-	OnTime             bool `gorm:"default:true"`
+	UserID             uint      `gorm:"primaryKey;not null;default:null"`
+	MeetingID          uint      `gorm:"primaryKey;not null;default:null"`
+	AttendanceMarkedAt time.Time `gorm:"not null;default:null"`
+	OnTime             bool      `gorm:"default:true"`
 }
