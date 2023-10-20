@@ -14,6 +14,18 @@ func NewMeetingRepository() *MeetingRepository {
 	return &MeetingRepository{database.DB}
 }
 
+type MeetingRepositoryInterface interface {
+	CreateMeeting(meeting models.Meeting) (models.Meeting, error)
+	GetMeetingByID(id uint) (models.Meeting, error)
+	UpdateMeeting(meeting models.Meeting) (models.Meeting, error)
+	DeleteMeetingByID(id uint) error
+	GetMeetingsByTeamID(teamID uint) ([]models.Meeting, error)
+	GetMeetingsByTeamIDAndMeetingOver(teamID uint, meetingOver bool) ([]models.Meeting, error)
+	AddMeetingAttendance(meetingAttendance models.MeetingAttendance) error
+	GetMeetingAttendanceByMeetingID(meetingID uint) ([]models.MeetingAttendance, error)
+	GetMeetingAttendanceByMeetingIDAndOnTime(meetingID uint, onTime bool) ([]models.MeetingAttendance, error)
+}
+
 // CreateMeeting creates a new meeting in the database.
 func (mr *MeetingRepository) CreateMeeting(meeting models.Meeting) (models.Meeting, error) {
 	// should return error if not null field doesnt have value

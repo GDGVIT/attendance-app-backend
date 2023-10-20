@@ -10,12 +10,11 @@ import (
 
 // MeetingService handles business logic related to meetings.
 type MeetingService struct {
-	meetingRepo *repository.MeetingRepository
+	meetingRepo repository.MeetingRepositoryInterface
 }
 
 // NewMeetingService creates a new MeetingService.
-func NewMeetingService() *MeetingService {
-	meetingRepo := repository.NewMeetingRepository()
+func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface) *MeetingService {
 	return &MeetingService{meetingRepo}
 }
 
