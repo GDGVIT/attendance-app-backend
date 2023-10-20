@@ -77,3 +77,42 @@ func TestMeetingController_CreateMeeting(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, meeting, responseMeeting)
 }
+
+func TestMeetingController_GetMeetingsByTeamIDAndMeetingOver(t *testing.T) {
+	// Initialize the mock controller
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create a mock MeetingService
+	mockService := mocks.NewMockMeetingService(ctrl)
+
+	// Create a new Gin router
+	r := gin.Default()
+
+	// Initialize the meeting controller with the mock service
+	meetingController := NewMeetingController(mockService)
+
+	// Register routes for testing
+	r.GET("/teams/:teamID/meetings", meetingController.GetMeetingsByTeamIDAndMeetingOver)
+
+	// Set up route parameters
+	teamID := "1"
+	meetingOver := "true"
+
+	// Mock the service's GetMeetingsByTeamIDAndMeetingOver function
+	mockService.EXPECT().GetMeetingsByTeamIDAndMeetingOver(uint(1), true).Return([]models.Meeting{}, nil)
+
+	// Perform the request
+	req, _ := http.NewRequest("GET", "/teams/"+teamID+"/meetings?meetingOver="+meetingOver, nil)
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	// Assert the response
+	assert.Equal(t, http.StatusOK, w.Code)
+	// You can also parse the response body to validate the result
+	var responseMeetings []models.Meeting
+	err := json.NewDecoder(w.Body).Decode(&responseMeetings)
+	assert.NoError(t, err)
+	// Add more assertions based on your test case
+}

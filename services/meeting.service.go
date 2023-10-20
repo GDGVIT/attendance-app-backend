@@ -20,6 +20,7 @@ func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface) *Meeti
 
 type MeetingServiceInterface interface {
 	CreateMeeting(teamID uint, title, description, venue string, location models.Location, startTime time.Time) (models.Meeting, error)
+	GetMeetingsByTeamIDAndMeetingOver(teamID uint, meetingOver bool) ([]models.Meeting, error)
 }
 
 // CreateMeeting creates a new meeting in the database.

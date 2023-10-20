@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -68,4 +69,62 @@ func TestMeetingService_CreateMeeting(t *testing.T) {
 	assert.Error(t, failingErr)
 	assert.NotEqual(t, failingMeeting, failingCreatedMeeting)
 
+}
+
+func TestMeetingService_GetMeetingsByTeamIDAndMeetingOver(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create a mock MeetingRepository
+	mockRepo := mocks.NewMockMeetingRepository(ctrl)
+
+	// Create a test MeetingService with the mock repository
+	service := NewMeetingService(mockRepo)
+
+	// Define test data
+	teamID := uint(1)
+	meetingOver := false
+
+	// Define the expected return value from the repository
+	expectedMeetings := []models.Meeting{
+		// Create test meetings as needed
+		{
+			TeamID:      1,
+			Title:       "Sample Meeting",
+			Description: "Description",
+			Venue:       "Venue",
+			Location: models.Location{
+				Latitude:  10.0,
+				Longitude: 20.0,
+				Altitude:  30.0,
+			},
+			StartTime: time.Now().Add(time.Hour * 24),
+		},
+		{
+			TeamID:      1,
+			Title:       "Sample Meeting 2",
+			Description: "Description",
+			Venue:       "Venue",
+			Location: models.Location{
+				Latitude:  10.0,
+				Longitude: 20.0,
+				Altitude:  30.0,
+			},
+			StartTime: time.Now().Add(time.Hour * 24),
+		},
+	}
+
+	// Mock the GetMeetingsByTeamIDAndMeetingOver function
+	mockRepo.EXPECT().GetMeetingsByTeamIDAndMeetingOver(teamID, meetingOver).Return(expectedMeetings, nil)
+
+	// Call the service function
+	meetings, err := service.GetMeetingsByTeamIDAndMeetingOver(teamID, meetingOver)
+	if err != nil {
+		t.Errorf("GetMeetingsByTeamIDAndMeetingOver returned an error: %v", err)
+	}
+
+	// Assert the result
+	if !reflect.DeepEqual(meetings, expectedMeetings) {
+		t.Errorf("GetMeetingsByTeamIDAndMeetingOver returned unexpected meetings: got %v, want %v", meetings, expectedMeetings)
+	}
 }

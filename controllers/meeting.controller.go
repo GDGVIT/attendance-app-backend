@@ -61,3 +61,29 @@ func (mc *MeetingController) CreateMeeting(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, createdMeeting)
 }
+
+// GetMeetingsByTeamIDAndMeetingOver retrieves all meetings for a team.
+func (mc *MeetingController) GetMeetingsByTeamIDAndMeetingOver(c *gin.Context) {
+	// Get team ID from route parameters
+	teamID, err := strconv.ParseUint(c.Param("teamID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get meetingOver from query parameters
+	meetingOver, err := strconv.ParseBool(c.Query("meetingOver"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meetingOver"})
+		return
+	}
+
+	// Call the meeting service to get all meetings for a team
+	meetings, err := mc.meetingService.GetMeetingsByTeamIDAndMeetingOver(uint(teamID), meetingOver)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get meetings", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, meetings)
+}

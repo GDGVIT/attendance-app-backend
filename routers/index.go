@@ -129,6 +129,9 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// /:teamID/meetings to create one, by super admin
 		team.POST("/:teamID/meetings", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), meetingController.CreateMeeting)
+
+		// get all meetings of a team, query ?meetingOver=true/false
+		team.GET("/:teamID/meetings", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), meetingController.GetMeetingsByTeamIDAndMeetingOver)
 	}
 }
 
