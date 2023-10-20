@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"sort"
 	"time"
 
 	"github.com/GDGVIT/attendance-app-backend/models"
@@ -20,7 +21,7 @@ func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface) *Meeti
 
 type MeetingServiceInterface interface {
 	CreateMeeting(teamID uint, title, description, venue string, location models.Location, startTime time.Time) (models.Meeting, error)
-	GetMeetingsByTeamIDAndMeetingOver(teamID uint, meetingOver bool) ([]models.Meeting, error)
+	GetMeetingsByTeamID(teamID uint, filterBy string, orderBy string) ([]models.Meeting, error)
 }
 
 // CreateMeeting creates a new meeting in the database.
@@ -162,21 +163,41 @@ func (ms *MeetingService) DeleteMeetingByID(meetingID uint) error {
 	return ms.meetingRepo.DeleteMeetingByID(meetingID)
 }
 
-// GetMeetingsByTeamID retrieves all meetings for a given team ID.
-func (ms *MeetingService) GetAllMeetingsByTeamID(teamID uint) ([]models.Meeting, error) {
-	meetings, err := ms.meetingRepo.GetMeetingsByTeamID(teamID)
-	if err != nil {
-		return nil, err
-	}
-	return meetings, nil
-}
+// GetMeetingsByTeamID retrieves meetings for a team based on filters.
+func (ms *MeetingService) GetMeetingsByTeamID(teamID uint, filterBy string, orderBy string) ([]models.Meeting, error) {
+	var meetings []models.Meeting
+	var err error
 
-// GetMeetingsByTeamIDAndMeetingOver retrieves all meetings for a given team ID and meeting over status.
-func (ms *MeetingService) GetMeetingsByTeamIDAndMeetingOver(teamID uint, meetingOver bool) ([]models.Meeting, error) {
-	meetings, err := ms.meetingRepo.GetMeetingsByTeamIDAndMeetingOver(teamID, meetingOver)
+	// Use a switch statement to handle different filtering options
+	switch filterBy {
+	case "all":
+		meetings, err = ms.meetingRepo.GetMeetingsByTeamID(teamID)
+	case "upcoming":
+		meetings, err = ms.meetingRepo.GetMeetingsByTeamIDAndMeetingOver(teamID, false)
+	case "past":
+		meetings, err = ms.meetingRepo.GetMeetingsByTeamIDAndMeetingOver(teamID, true)
+	default:
+		return nil, errors.New("invalid filterBy value")
+	}
+
 	if err != nil {
 		return nil, err
 	}
+
+	// Implement sorting based on the `orderBy` parameter
+	switch orderBy {
+	case "asc":
+		// Sort meetings in ascending order by startTime
+		sort.Slice(meetings, func(i, j int) bool {
+			return meetings[i].StartTime.Before(meetings[j].StartTime)
+		})
+	case "desc":
+		// Sort meetings in descending order by start date
+		sort.Slice(meetings, func(i, j int) bool {
+			return meetings[i].StartTime.After(meetings[j].StartTime)
+		})
+	}
+
 	return meetings, nil
 }
 

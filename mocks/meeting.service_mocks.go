@@ -34,9 +34,9 @@ func (m *MockMeetingService) CreateMeeting(teamID uint, title, description, venu
 	return ret0, ret1
 }
 
-// GetMeetingsByTeamIDAndMeetingOver mocks the GetMeetingsByTeamIDAndMeetingOver method.
-func (m *MockMeetingService) GetMeetingsByTeamIDAndMeetingOver(teamID uint, meetingOver bool) ([]models.Meeting, error) {
-	ret := m.ctrl.Call(m, "GetMeetingsByTeamIDAndMeetingOver", teamID, meetingOver)
+// GetMeetingsByTeamID mocks the GetMeetingsByTeamID method.
+func (m *MockMeetingService) GetMeetingsByTeamID(teamID uint, filterBy string, orderBy string) ([]models.Meeting, error) {
+	ret := m.ctrl.Call(m, "GetMeetingsByTeamID", teamID, filterBy, orderBy)
 	ret0, _ := ret[0].([]models.Meeting)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -52,7 +52,7 @@ func (mr *MockMeetingServiceMockRecorder) CreateMeeting(teamID uint, title, desc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMeeting", reflect.TypeOf((*MockMeetingService)(nil).CreateMeeting), teamID, title, description, venue, location, startTime)
 }
 
-// GetMeetingsByTeamIDAndMeetingOver mocks the GetMeetingsByTeamIDAndMeetingOver method.
-func (mr *MockMeetingServiceMockRecorder) GetMeetingsByTeamIDAndMeetingOver(teamID uint, meetingOver bool) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeetingsByTeamIDAndMeetingOver", reflect.TypeOf((*MockMeetingService)(nil).GetMeetingsByTeamIDAndMeetingOver), teamID, meetingOver)
+// GetMeetingsByTeamID mocks the GetMeetingsByTeamID method.
+func (mr *MockMeetingServiceMockRecorder) GetMeetingsByTeamID(teamID uint, filterBy string, orderBy string) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeetingsByTeamID", reflect.TypeOf((*MockMeetingService)(nil).GetMeetingsByTeamID), teamID, filterBy, orderBy)
 }

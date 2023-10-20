@@ -93,26 +93,29 @@ func TestMeetingController_GetMeetingsByTeamIDAndMeetingOver(t *testing.T) {
 	meetingController := NewMeetingController(mockService)
 
 	// Register routes for testing
-	r.GET("/teams/:teamID/meetings", meetingController.GetMeetingsByTeamIDAndMeetingOver)
+	r.GET("/teams/:teamID/meetings", meetingController.GetMeetingsByTeamID)
 
 	// Set up route parameters
 	teamID := "1"
-	meetingOver := "true"
+	filterBy := "upcoming"
+	orderBy := "asc"
 
 	// Mock the service's GetMeetingsByTeamIDAndMeetingOver function
-	mockService.EXPECT().GetMeetingsByTeamIDAndMeetingOver(uint(1), true).Return([]models.Meeting{}, nil)
+	mockService.EXPECT().GetMeetingsByTeamID(uint(1), "upcoming", "asc").Return([]models.Meeting{}, nil)
 
 	// Perform the request
-	req, _ := http.NewRequest("GET", "/teams/"+teamID+"/meetings?meetingOver="+meetingOver, nil)
+	req, _ := http.NewRequest("GET", "/teams/"+teamID+"/meetings?filterBy="+filterBy+"&orderBy="+orderBy, nil)
 
+	// Perform the request
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
 	// Assert the response
 	assert.Equal(t, http.StatusOK, w.Code)
+
 	// You can also parse the response body to validate the result
 	var responseMeetings []models.Meeting
 	err := json.NewDecoder(w.Body).Decode(&responseMeetings)
 	assert.NoError(t, err)
-	// Add more assertions based on your test case
+	assert.Equal(t, []models.Meeting{}, responseMeetings)
 }

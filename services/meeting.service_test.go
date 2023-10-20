@@ -118,7 +118,7 @@ func TestMeetingService_GetMeetingsByTeamIDAndMeetingOver(t *testing.T) {
 	mockRepo.EXPECT().GetMeetingsByTeamIDAndMeetingOver(teamID, meetingOver).Return(expectedMeetings, nil)
 
 	// Call the service function
-	meetings, err := service.GetMeetingsByTeamIDAndMeetingOver(teamID, meetingOver)
+	meetings, err := service.GetMeetingsByTeamID(teamID, "upcoming", "")
 	if err != nil {
 		t.Errorf("GetMeetingsByTeamIDAndMeetingOver returned an error: %v", err)
 	}

@@ -63,7 +63,7 @@ func (mc *MeetingController) CreateMeeting(c *gin.Context) {
 }
 
 // GetMeetingsByTeamIDAndMeetingOver retrieves all meetings for a team.
-func (mc *MeetingController) GetMeetingsByTeamIDAndMeetingOver(c *gin.Context) {
+func (mc *MeetingController) GetMeetingsByTeamID(c *gin.Context) {
 	// Get team ID from route parameters
 	teamID, err := strconv.ParseUint(c.Param("teamID"), 10, 64)
 	if err != nil {
@@ -71,17 +71,16 @@ func (mc *MeetingController) GetMeetingsByTeamIDAndMeetingOver(c *gin.Context) {
 		return
 	}
 
-	// Get meetingOver from query parameters
-	meetingOver, err := strconv.ParseBool(c.Query("meetingOver"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meetingOver"})
-		return
-	}
+	// Get filterBy query parameter
+	filterBy := c.Query("filterBy")
 
-	// Call the meeting service to get all meetings for a team
-	meetings, err := mc.meetingService.GetMeetingsByTeamIDAndMeetingOver(uint(teamID), meetingOver)
+	// Get orderBy query parameter
+	orderBy := c.Query("orderBy")
+
+	// Call the meeting service to get the meetings
+	meetings, err := mc.meetingService.GetMeetingsByTeamID(uint(teamID), filterBy, orderBy)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get meetings", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get the meetings", "error": err.Error()})
 		return
 	}
 

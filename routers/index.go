@@ -131,7 +131,7 @@ func RegisterRoutes(route *gin.Engine) {
 		team.POST("/:teamID/meetings", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), meetingController.CreateMeeting)
 
 		// get all meetings of a team, query ?meetingOver=true/false
-		team.GET("/:teamID/meetings", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), meetingController.GetMeetingsByTeamIDAndMeetingOver)
+		team.GET("/:teamID/meetings", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), meetingController.GetMeetingsByTeamID)
 	}
 }
 
