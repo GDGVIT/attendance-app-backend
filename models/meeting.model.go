@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -20,21 +21,51 @@ type Location struct {
 type Meeting struct {
 	gorm.Model
 	TeamID           uint      `gorm:"not null"`
-	Title            string    `gorm:"size:255;not null;default:null"`
-	Description      string    `gorm:"size:255;not null;default:null"`
-	Venue            string    `gorm:"size:255;not null;default:null"`
+	Title            string    `gorm:"size:255;not null"`
+	Description      string    `gorm:"size:255;not null"`
+	Venue            string    `gorm:"size:255;not null"`
 	Location         Location  `gorm:"embedded"`
-	StartTime        time.Time `gorm:"not null;default:null"` // Unix timestamp, for info purposes only. Attendance will start on manual start.
+	StartTime        time.Time `gorm:"not null"` // Unix timestamp, for info purposes only. Attendance will start on manual start.
 	MeetingPeriod    bool      `gorm:"default:false"`
 	AttendancePeriod bool      `gorm:"default:false"` // Members can mark attendance while true. Can only be started after meeting has started. Is ended alongside meeting end if not ended before.
 	MeetingOver      bool      `gorm:"default:false"` // Will not show meeting on dashboard if true, can be seen in some history tab
 	AttendanceOver   bool      `gorm:"default:false"`
 }
 
+// add isvalid check to model to check if venue, title, description are not empty strings or missing
+// add isvalid check to model to check if location is valid
+// add isvalid check to model to check if starttime is in the future
+// all this in a beforecreate hook
+func (m *Meeting) BeforeCreate(tx *gorm.DB) error {
+	if m.TeamID == 0 {
+		return gorm.ErrInvalidData
+	}
+	if m.Venue == "" || m.Title == "" || m.Description == "" {
+		return errors.New("meeting venue, title or description cannot be empty")
+	}
+	if m.StartTime.Before(time.Now()) {
+		return errors.New("meeting start time cannot be in the past")
+	}
+	if m.MeetingPeriod || m.AttendancePeriod || m.MeetingOver || m.AttendanceOver {
+		return errors.New("meeting cannot be created with any of the periods set to true")
+	}
+	return nil
+}
+
 type MeetingAttendance struct {
 	gorm.Model
-	UserID             uint      `gorm:"primaryKey;not null;default:null"`
-	MeetingID          uint      `gorm:"primaryKey;not null;default:null"`
-	AttendanceMarkedAt time.Time `gorm:"not null;default:null"`
+	UserID             uint      `gorm:"primaryKey;not null"`
+	MeetingID          uint      `gorm:"primaryKey;not null"`
+	AttendanceMarkedAt time.Time `gorm:"not null"`
 	OnTime             bool      `gorm:"default:true"`
+}
+
+func (ma *MeetingAttendance) BeforeCreate(tx *gorm.DB) error {
+	if ma.UserID == 0 || ma.MeetingID == 0 {
+		return gorm.ErrInvalidData
+	}
+	if ma.AttendanceMarkedAt.IsZero() {
+		return errors.New("attendance marked at cannot be zero time")
+	}
+	return nil
 }

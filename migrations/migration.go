@@ -18,6 +18,8 @@ func Migrate() {
 		&models.Team{},
 		&models.TeamMember{},
 		&models.TeamEntryRequest{},
+		&models.Meeting{},
+		&models.MeetingAttendance{},
 	}
 	err := database.DB.AutoMigrate(migrationModels...)
 	if err != nil {

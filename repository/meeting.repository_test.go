@@ -28,7 +28,7 @@ func TestMeetingRepository_CreateMeeting(t *testing.T) {
 		Description: "Test Meeting Description",
 		TeamID:      1,
 		// StartTime as a time.Time value
-		StartTime: time.Date(2024, 1, 1, 0, 0, 5, 0, time.UTC),
+		StartTime: time.Now().Add(time.Hour * 24),
 		Venue:     "Test Venue",
 		// Location as the models.Location struct
 		Location: models.Location{
@@ -75,7 +75,7 @@ func TestMeetingRepository_CreateMeeting(t *testing.T) {
 		Description: "Test Meeting Description",
 		TeamID:      1,
 		// StartTime as a time.Time value
-		StartTime: time.Date(2024, 1, 1, 0, 0, 5, 0, time.UTC),
+		StartTime: time.Now().Add(time.Hour * 24),
 		Venue:     "Test Venue",
 		// Location as the models.Location struct
 		Location: models.Location{
@@ -108,7 +108,7 @@ func TestMeetingRepository_GetMeetingByID(t *testing.T) {
 		Title:       "Test Meeting",
 		Description: "Test Meeting Description",
 		TeamID:      1,
-		StartTime:   time.Now(),
+		StartTime:   time.Now().Add(time.Hour * 24),
 		Venue:       "Test Venue",
 		Location: models.Location{
 			Latitude:  12.345678,
@@ -157,7 +157,7 @@ func TestMeetingRepository_UpdateMeeting(t *testing.T) {
 		Title:       "Test Meeting",
 		Description: "Test Meeting Description",
 		TeamID:      1,
-		StartTime:   time.Now(),
+		StartTime:   time.Now().Add(time.Hour * 24),
 		Venue:       "Test Venue",
 		Location: models.Location{
 			Latitude:  12.345678,
@@ -201,7 +201,7 @@ func TestMeetingRepository_DeleteMeetingByID(t *testing.T) {
 		Title:       "Test Meeting",
 		Description: "Test Meeting Description",
 		TeamID:      1,
-		StartTime:   time.Now(),
+		StartTime:   time.Now().Add(time.Hour * 24),
 		Venue:       "Test Venue",
 		Location: models.Location{
 			Latitude:  12.345678,
@@ -239,7 +239,7 @@ func TestMeetingRepository_AddMeetingAttendance(t *testing.T) {
 		Title:       "Test Meeting",
 		Description: "Test Meeting Description",
 		TeamID:      1,
-		StartTime:   time.Now(),
+		StartTime:   time.Now().Add(time.Hour * 24),
 		Venue:       "Test Venue",
 		Location: models.Location{
 			Latitude:  12.345678,
