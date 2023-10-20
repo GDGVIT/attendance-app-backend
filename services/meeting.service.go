@@ -18,6 +18,10 @@ func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface) *Meeti
 	return &MeetingService{meetingRepo}
 }
 
+type MeetingServiceInterface interface {
+	CreateMeeting(teamID uint, title, description, venue string, location models.Location, startTime time.Time) (models.Meeting, error)
+}
+
 // CreateMeeting creates a new meeting in the database.
 func (ms *MeetingService) CreateMeeting(teamID uint, title, description, venue string, location models.Location, startTime time.Time) (models.Meeting, error) {
 	meeting := models.Meeting{
