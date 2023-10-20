@@ -91,3 +91,187 @@ func TestMeetingRepository_CreateMeeting(t *testing.T) {
 		t.Errorf("CreateMeeting should have returned an error")
 	}
 }
+
+func TestMeetingRepository_GetMeetingByID(t *testing.T) {
+	db, err := test_utils.SetupTestDB()
+	if err != nil {
+		t.Fatalf("Failed to set up test database: %v", err)
+	}
+	defer db.Migrator().DropTable(&models.Meeting{})
+
+	// Create the Meeting Repository with the test database
+	mr := NewMeetingRepository()
+	mr.db = db
+
+	// Create a test meeting
+	meeting := models.Meeting{
+		Title:       "Test Meeting",
+		Description: "Test Meeting Description",
+		TeamID:      1,
+		StartTime:   time.Now(),
+		Venue:       "Test Venue",
+		Location: models.Location{
+			Latitude:  12.345678,
+			Longitude: 98.765432,
+			Altitude:  0,
+		},
+	}
+
+	// Test GetMeetingByID function
+	createdMeeting, err := mr.CreateMeeting(meeting)
+	if err != nil {
+		t.Errorf("CreateMeeting returned an error: %v", err)
+	}
+
+	// Test GetMeetingByID with a valid ID
+	retrievedMeeting, err := mr.GetMeetingByID(createdMeeting.ID)
+	if err != nil {
+		t.Errorf("GetMeetingByID returned an error: %v", err)
+	}
+
+	// Check that retrievedMeeting matches the createdMeeting
+	if retrievedMeeting.ID != createdMeeting.ID {
+		t.Errorf("Expected ID to be %v, got %v", createdMeeting.ID, retrievedMeeting.ID)
+	}
+
+	// Test GetMeetingByID with an invalid ID
+	_, err = mr.GetMeetingByID(999) // Non-existent ID
+	if err == nil {
+		t.Errorf("GetMeetingByID should have returned an error for a non-existent meeting")
+	}
+}
+
+func TestMeetingRepository_UpdateMeeting(t *testing.T) {
+	db, err := test_utils.SetupTestDB()
+	if err != nil {
+		t.Fatalf("Failed to set up test database: %v", err)
+	}
+	defer db.Migrator().DropTable(&models.Meeting{})
+
+	// Create the Meeting Repository with the test database
+	mr := NewMeetingRepository()
+	mr.db = db
+
+	// Create a test meeting
+	meeting := models.Meeting{
+		Title:       "Test Meeting",
+		Description: "Test Meeting Description",
+		TeamID:      1,
+		StartTime:   time.Now(),
+		Venue:       "Test Venue",
+		Location: models.Location{
+			Latitude:  12.345678,
+			Longitude: 98.765432,
+			Altitude:  0,
+		},
+	}
+
+	// Test UpdateMeeting function
+	createdMeeting, err := mr.CreateMeeting(meeting)
+	if err != nil {
+		t.Errorf("CreateMeeting returned an error: %v", err)
+	}
+
+	// Update the meeting
+	createdMeeting.Title = "Updated Meeting Title"
+	updatedMeeting, err := mr.UpdateMeeting(createdMeeting)
+	if err != nil {
+		t.Errorf("UpdateMeeting returned an error: %v", err)
+	}
+
+	// Check that updatedMeeting matches the changes
+	if updatedMeeting.Title != "Updated Meeting Title" {
+		t.Errorf("Expected Title to be 'Updated Meeting Title', got %v", updatedMeeting.Title)
+	}
+}
+
+func TestMeetingRepository_DeleteMeetingByID(t *testing.T) {
+	db, err := test_utils.SetupTestDB()
+	if err != nil {
+		t.Fatalf("Failed to set up test database: %v", err)
+	}
+	defer db.Migrator().DropTable(&models.Meeting{})
+
+	// Create the Meeting Repository with the test database
+	mr := NewMeetingRepository()
+	mr.db = db
+
+	// Create a test meeting
+	meeting := models.Meeting{
+		Title:       "Test Meeting",
+		Description: "Test Meeting Description",
+		TeamID:      1,
+		StartTime:   time.Now(),
+		Venue:       "Test Venue",
+		Location: models.Location{
+			Latitude:  12.345678,
+			Longitude: 98.765432,
+			Altitude:  0,
+		},
+	}
+
+	// Test DeleteMeetingByID function
+	createdMeeting, err := mr.CreateMeeting(meeting)
+	if err != nil {
+		t.Errorf("CreateMeeting returned an error: %v", err)
+	}
+
+	// Test DeleteMeetingByID with a valid ID
+	err = mr.DeleteMeetingByID(createdMeeting.ID)
+	if err != nil {
+		t.Errorf("DeleteMeetingByID returned an error: %v", err)
+	}
+}
+
+func TestMeetingRepository_AddMeetingAttendance(t *testing.T) {
+	db, err := test_utils.SetupTestDB()
+	if err != nil {
+		t.Fatalf("Failed to set up test database: %v", err)
+	}
+	defer db.Migrator().DropTable(&models.Meeting{}, &models.MeetingAttendance{})
+
+	// Create the Meeting Repository with the test database
+	mr := NewMeetingRepository()
+	mr.db = db
+
+	// Create a test meeting
+	meeting := models.Meeting{
+		Title:       "Test Meeting",
+		Description: "Test Meeting Description",
+		TeamID:      1,
+		StartTime:   time.Now(),
+		Venue:       "Test Venue",
+		Location: models.Location{
+			Latitude:  12.345678,
+			Longitude: 98.765432,
+			Altitude:  0,
+		},
+	}
+
+	// Test CreateMeeting function
+	createdMeeting, err := mr.CreateMeeting(meeting)
+	if err != nil {
+		t.Errorf("CreateMeeting returned an error: %v", err)
+	}
+
+	// Create a test meeting attendance
+	meetingAttendance := models.MeetingAttendance{
+		MeetingID:          createdMeeting.ID,
+		UserID:             1,
+		AttendanceMarkedAt: time.Now(),
+		OnTime:             true,
+	}
+
+	// Test AddMeetingAttendance function
+	err = mr.AddMeetingAttendance(meetingAttendance)
+	if err != nil {
+		t.Errorf("AddMeetingAttendance returned an error: %v", err)
+	}
+
+	// Test AddMeetingAttendance with an invalid meeting attendance (null value for time.Time)
+	meetingAttendance.AttendanceMarkedAt = time.Time{}
+	err = mr.AddMeetingAttendance(meetingAttendance)
+	if err == nil {
+		t.Errorf("AddMeetingAttendance should have returned an error for a non-existent meeting")
+	}
+}
