@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/GDGVIT/attendance-app-backend/controllers"
+	"github.com/GDGVIT/attendance-app-backend/repository"
 	"github.com/GDGVIT/attendance-app-backend/routers/middleware"
+	"github.com/GDGVIT/attendance-app-backend/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -120,6 +122,13 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// handover superadmin to another member
 		team.PATCH("/:teamID/handover", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.HandoverTeamSuperAdmin)
+
+		meetingRepo := repository.NewMeetingRepository()
+		meetingService := services.NewMeetingService(meetingRepo)
+		meetingController := controllers.NewMeetingController(meetingService)
+
+		// /:teamID/meetings to create one, by super admin
+		team.POST("/:teamID/meetings", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), meetingController.CreateMeeting)
 	}
 }
 
