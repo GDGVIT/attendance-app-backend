@@ -44,3 +44,47 @@ func (mr *MeetingRepository) UpdateMeeting(meeting models.Meeting) (models.Meeti
 func (mr *MeetingRepository) DeleteMeetingByID(id uint) error {
 	return mr.db.Delete(&models.Meeting{}, id).Error
 }
+
+// GetMeetingsByTeamID fetches all meetings of a team.
+func (mr *MeetingRepository) GetMeetingsByTeamID(teamID uint) ([]models.Meeting, error) {
+	var meetings []models.Meeting
+	if err := mr.db.Where("team_id = ?", teamID).Find(&meetings).Error; err != nil {
+		return nil, err
+	}
+	return meetings, nil
+}
+
+// GetMeetingsByTeamIDAndMeetingOver
+func (mr *MeetingRepository) GetMeetingsByTeamIDAndMeetingOver(teamID uint, meetingOver bool) ([]models.Meeting, error) {
+	var meetings []models.Meeting
+	if err := mr.db.Where("team_id = ? AND meeting_over = ?", teamID, meetingOver).Find(&meetings).Error; err != nil {
+		return nil, err
+	}
+	return meetings, nil
+}
+
+// AddMeetingAttendance adds attendance record for meeting and user
+func (mr *MeetingRepository) AddMeetingAttendance(meetingAttendance models.MeetingAttendance) error {
+	if err := mr.db.Create(&meetingAttendance).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetMeetingAttendanceByMeetingID fetches all attendance records for a meeting
+func (mr *MeetingRepository) GetMeetingAttendanceByMeetingID(meetingID uint) ([]models.MeetingAttendance, error) {
+	var meetingAttendance []models.MeetingAttendance
+	if err := mr.db.Where("meeting_id = ?", meetingID).Find(&meetingAttendance).Error; err != nil {
+		return nil, err
+	}
+	return meetingAttendance, nil
+}
+
+// GetMeetingAttendanceByMeetingIDAndOnTime
+func (mr *MeetingRepository) GetMeetingAttendanceByMeetingIDAndOnTime(meetingID uint, onTime bool) ([]models.MeetingAttendance, error) {
+	var meetingAttendance []models.MeetingAttendance
+	if err := mr.db.Where("meeting_id = ? AND on_time = ?", meetingID, onTime).Find(&meetingAttendance).Error; err != nil {
+		return nil, err
+	}
+	return meetingAttendance, nil
+}

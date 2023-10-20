@@ -28,6 +28,7 @@ type Meeting struct {
 	MeetingPeriod    bool      `gorm:"default:false"`
 	AttendancePeriod bool      `gorm:"default:false"` // Members can mark attendance while true. Can only be started after meeting has started. Is ended alongside meeting end if not ended before.
 	MeetingOver      bool      `gorm:"default:false"` // Will not show meeting on dashboard if true, can be seen in some history tab
+	AttendanceOver   bool      `gorm:"default:false"`
 }
 
 type MeetingAttendance struct {
