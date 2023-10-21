@@ -90,10 +90,11 @@ func (m *MockMeetingService) DeleteMeetingByID(meetingID uint, teamid uint) erro
 }
 
 // MarkAttendanceForUserInMeeting mocks the MarkAttendanceForUserInMeeting method.
-func (m *MockMeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) error {
+func (m *MockMeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) (bool, error) {
 	ret := m.ctrl.Call(m, "MarkAttendanceForUserInMeeting", userID, meetingID, attendanceTime, teamid)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[0].(error)
+	return ret0, ret1
 }
 
 // MockMeetingServiceMockRecorder is a mock recorder for MockMeetingService.

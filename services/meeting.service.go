@@ -28,7 +28,7 @@ type MeetingServiceInterface interface {
 	StartAttendance(meetingID uint, teamid uint) (models.Meeting, error)
 	EndAttendance(meetingID uint, teamid uint) (models.Meeting, error)
 	DeleteMeetingByID(meetingID uint, teamid uint) error
-	MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) error
+	MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) (bool, error)
 }
 
 // CreateMeeting creates a new meeting in the database.
@@ -215,21 +215,28 @@ func (ms *MeetingService) GetMeetingsByTeamID(teamID uint, filterBy string, orde
 	return meetings, nil
 }
 
-// MarkAttendaceForUserInMeeting marks attendance for a user in a meeting.
-func (ms *MeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamID uint) error {
+// MarkAttendaceForUserInMeeting marks attendance for a user in a meeting. Returns onTime bool.
+func (ms *MeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamID uint) (bool, error) {
 	// If meeting not started or meeting over, return error
 	meeting, err := ms.GetMeetingByID(meetingID, teamID)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if !meeting.MeetingPeriod || meeting.MeetingOver {
-		return errors.New("meeting not started or meeting over")
+		return false, errors.New("meeting not started or meeting over")
 	}
 
 	// If meeting started but attendance not started (ie, not attendance period, and not attendance ended), return error
 	if !meeting.AttendancePeriod && meeting.MeetingPeriod && !meeting.AttendanceOver {
-		return errors.New("attendance not started")
+		return false, errors.New("attendance not started")
+	}
+
+	// check if attendance record for user and meeting exists. If it does, return error.
+	_, err = ms.meetingRepo.GetMeetingAttendanceByUserIDAndMeetingID(userID, meetingID)
+	if err == nil {
+		// attendance record exists
+		return false, errors.New("attendance already marked")
 	}
 
 	meetingAttendance := models.MeetingAttendance{
@@ -246,10 +253,10 @@ func (ms *MeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint,
 	}
 
 	if err := ms.meetingRepo.AddMeetingAttendance(meetingAttendance); err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return meetingAttendance.OnTime, nil
 }
 
 // GetMeetingStatsByMeetingID retrieves meeting stats for a given meeting ID. Stats: total attendance, on time attendance, late attendance.

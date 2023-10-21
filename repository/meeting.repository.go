@@ -24,6 +24,7 @@ type MeetingRepositoryInterface interface {
 	AddMeetingAttendance(meetingAttendance models.MeetingAttendance) error
 	GetMeetingAttendanceByMeetingID(meetingID uint) ([]models.MeetingAttendance, error)
 	GetMeetingAttendanceByMeetingIDAndOnTime(meetingID uint, onTime bool) ([]models.MeetingAttendance, error)
+	GetMeetingAttendanceByUserIDAndMeetingID(userID, meetingID uint) (models.MeetingAttendance, error)
 }
 
 // CreateMeeting creates a new meeting in the database.
@@ -97,6 +98,15 @@ func (mr *MeetingRepository) GetMeetingAttendanceByMeetingIDAndOnTime(meetingID 
 	var meetingAttendance []models.MeetingAttendance
 	if err := mr.db.Where("meeting_id = ? AND on_time = ?", meetingID, onTime).Find(&meetingAttendance).Error; err != nil {
 		return nil, err
+	}
+	return meetingAttendance, nil
+}
+
+// GetMeetingAttendanceByUserIDAndMeetingID
+func (mr *MeetingRepository) GetMeetingAttendanceByUserIDAndMeetingID(userID, meetingID uint) (models.MeetingAttendance, error) {
+	var meetingAttendance models.MeetingAttendance
+	if err := mr.db.Where("user_id = ? AND meeting_id = ?", userID, meetingID).First(&meetingAttendance).Error; err != nil {
+		return meetingAttendance, err
 	}
 	return meetingAttendance, nil
 }

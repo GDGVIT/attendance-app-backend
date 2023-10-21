@@ -95,6 +95,14 @@ func (m *MockMeetingRepository) GetMeetingAttendanceByMeetingIDAndOnTime(meeting
 	return ret0, ret1
 }
 
+// GetMeetingAttendanceByUserIDAndMeetingID mocks the GetMeetingAttendanceByUserIDAndMeetingID method.
+func (m *MockMeetingRepository) GetMeetingAttendanceByUserIDAndMeetingID(userID uint, meetingID uint) (models.MeetingAttendance, error) {
+	ret := m.ctrl.Call(m, "GetMeetingAttendanceByUserIDAndMeetingID", userID, meetingID)
+	ret0, _ := ret[0].(models.MeetingAttendance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // MockMeetingRepositoryMockRecorder is a mock recorder for MockMeetingRepository.
 type MockMeetingRepositoryMockRecorder struct {
 	mock *MockMeetingRepository
@@ -143,4 +151,9 @@ func (mr *MockMeetingRepositoryMockRecorder) GetMeetingAttendanceByMeetingID(mee
 // GetMeetingAttendanceByMeetingIDAndOnTime mocks the GetMeetingAttendanceByMeetingIDAndOnTime method.
 func (mr *MockMeetingRepositoryMockRecorder) GetMeetingAttendanceByMeetingIDAndOnTime(meetingID uint, onTime bool) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeetingAttendanceByMeetingIDAndOnTime", reflect.TypeOf((*MockMeetingRepository)(nil).GetMeetingAttendanceByMeetingIDAndOnTime), meetingID, onTime)
+}
+
+// GetMeetingAttendanceByUserIDAndMeetingID mocks the GetMeetingAttendanceByUserIDAndMeetingID method.
+func (mr *MockMeetingRepositoryMockRecorder) GetMeetingAttendanceByUserIDAndMeetingID(userID uint, meetingID uint) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeetingAttendanceByUserIDAndMeetingID", reflect.TypeOf((*MockMeetingRepository)(nil).GetMeetingAttendanceByUserIDAndMeetingID), userID, meetingID)
 }

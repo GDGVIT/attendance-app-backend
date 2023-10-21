@@ -599,7 +599,7 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 				mockRepo.EXPECT().AddMeetingAttendance(mockAttendance).Return(nil)
 			}
 
-			err := meetingService.MarkAttendanceForUserInMeeting(tc.userID, tc.meetingID, tc.attendanceTime, 1)
+			_, err := meetingService.MarkAttendanceForUserInMeeting(tc.userID, tc.meetingID, tc.attendanceTime, 1)
 
 			// Assert the error based on the expected result
 			if tc.expectedError {

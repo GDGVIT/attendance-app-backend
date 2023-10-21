@@ -150,6 +150,9 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// delete a meeting
 		team.DELETE("/:teamID/meetings/:meetingID", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), meetingController.DeleteMeetingByID)
+
+		// mark attendance for a user in a meeting
+		team.PATCH("/:teamID/meetings/:meetingID/attendance", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), meetingController.MarkAttendance)
 	}
 }
 
