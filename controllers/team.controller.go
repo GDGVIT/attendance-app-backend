@@ -426,15 +426,27 @@ func (tc *TeamController) UpdateTeamRequestStatus(c *gin.Context) {
 		return
 	}
 
-	if request.Status == models.TeamEntryRequestApproved {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "already-approved", "message": "Request has already been approved. You can remove the user from the team instead if you wish to do so."})
-		return
-	}
-
 	// Get the team
 	team, err := tc.teamRepo.GetTeamByID(request.TeamID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	// check if teamid is same as teamid from query param
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	if team.ID != uint(teamID) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	if request.Status == models.TeamEntryRequestApproved {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "already-approved", "message": "Request has already been approved. You can remove the user from the team instead if you wish to do so."})
 		return
 	}
 

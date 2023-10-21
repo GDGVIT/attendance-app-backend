@@ -43,55 +43,55 @@ func (m *MockMeetingService) GetMeetingsByTeamID(teamID uint, filterBy string, o
 }
 
 // GetMeetingByID mocks the GetMeetingByID method.
-func (m *MockMeetingService) GetMeetingByID(id uint) (models.Meeting, error) {
-	ret := m.ctrl.Call(m, "GetMeetingByID", id)
+func (m *MockMeetingService) GetMeetingByID(id uint, teamid uint) (models.Meeting, error) {
+	ret := m.ctrl.Call(m, "GetMeetingByID", id, teamid)
 	ret0, _ := ret[0].(models.Meeting)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // StartMeeting mocks the StartMeeting method.
-func (m *MockMeetingService) StartMeeting(meetingID uint) (models.Meeting, error) {
-	ret := m.ctrl.Call(m, "StartMeeting", meetingID)
+func (m *MockMeetingService) StartMeeting(meetingID uint, teamid uint) (models.Meeting, error) {
+	ret := m.ctrl.Call(m, "StartMeeting", meetingID, teamid)
 	ret0, _ := ret[0].(models.Meeting)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // EndMeeting mocks the EndMeeting method.
-func (m *MockMeetingService) EndMeeting(meetingID uint) (models.Meeting, error) {
-	ret := m.ctrl.Call(m, "EndMeeting", meetingID)
+func (m *MockMeetingService) EndMeeting(meetingID, teamid uint) (models.Meeting, error) {
+	ret := m.ctrl.Call(m, "EndMeeting", meetingID, teamid)
 	ret0, _ := ret[0].(models.Meeting)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // StartAttendance mocks the StartAttendance method.
-func (m *MockMeetingService) StartAttendance(meetingID uint) (models.Meeting, error) {
-	ret := m.ctrl.Call(m, "StartAttendance", meetingID)
+func (m *MockMeetingService) StartAttendance(meetingID, teamid uint) (models.Meeting, error) {
+	ret := m.ctrl.Call(m, "StartAttendance", meetingID, teamid)
 	ret0, _ := ret[0].(models.Meeting)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // EndAttendance mocks the EndAttendance method.
-func (m *MockMeetingService) EndAttendance(meetingID uint) (models.Meeting, error) {
-	ret := m.ctrl.Call(m, "EndAttendance", meetingID)
+func (m *MockMeetingService) EndAttendance(meetingID, teamid uint) (models.Meeting, error) {
+	ret := m.ctrl.Call(m, "EndAttendance", meetingID, teamid)
 	ret0, _ := ret[0].(models.Meeting)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteMeetingByID mocks the DeleteMeetingByID method.
-func (m *MockMeetingService) DeleteMeetingByID(meetingID uint) error {
-	ret := m.ctrl.Call(m, "DeleteMeetingByID", meetingID)
+func (m *MockMeetingService) DeleteMeetingByID(meetingID uint, teamid uint) error {
+	ret := m.ctrl.Call(m, "DeleteMeetingByID", meetingID, teamid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // MarkAttendanceForUserInMeeting mocks the MarkAttendanceForUserInMeeting method.
-func (m *MockMeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time) error {
-	ret := m.ctrl.Call(m, "MarkAttendanceForUserInMeeting", userID, meetingID, attendanceTime)
+func (m *MockMeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) error {
+	ret := m.ctrl.Call(m, "MarkAttendanceForUserInMeeting", userID, meetingID, attendanceTime, teamid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -111,36 +111,36 @@ func (mr *MockMeetingServiceMockRecorder) GetMeetingsByTeamID(teamID uint, filte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeetingsByTeamID", reflect.TypeOf((*MockMeetingService)(nil).GetMeetingsByTeamID), teamID, filterBy, orderBy)
 }
 
-func (mr *MockMeetingServiceMockRecorder) GetMeetingByID(id uint) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeetingByID", reflect.TypeOf((*MockMeetingService)(nil).GetMeetingByID), id)
+func (mr *MockMeetingServiceMockRecorder) GetMeetingByID(id, teamid uint) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeetingByID", reflect.TypeOf((*MockMeetingService)(nil).GetMeetingByID), id, teamid)
 }
 
 // StartMeeting mocks the StartMeeting method.
-func (mr *MockMeetingServiceMockRecorder) StartMeeting(meetingID uint) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartMeeting", reflect.TypeOf((*MockMeetingService)(nil).StartMeeting), meetingID)
+func (mr *MockMeetingServiceMockRecorder) StartMeeting(meetingID, teamid uint) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartMeeting", reflect.TypeOf((*MockMeetingService)(nil).StartMeeting), meetingID, teamid)
 }
 
 // EndMeeting mocks the EndMeeting method.
-func (mr *MockMeetingServiceMockRecorder) EndMeeting(meetingID uint) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EndMeeting", reflect.TypeOf((*MockMeetingService)(nil).EndMeeting), meetingID)
+func (mr *MockMeetingServiceMockRecorder) EndMeeting(meetingID, teamid uint) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EndMeeting", reflect.TypeOf((*MockMeetingService)(nil).EndMeeting), meetingID, teamid)
 }
 
 // StartAttendance mocks the StartAttendance method.
-func (mr *MockMeetingServiceMockRecorder) StartAttendance(meetingID uint) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartAttendance", reflect.TypeOf((*MockMeetingService)(nil).StartAttendance), meetingID)
+func (mr *MockMeetingServiceMockRecorder) StartAttendance(meetingID, teamid uint) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartAttendance", reflect.TypeOf((*MockMeetingService)(nil).StartAttendance), meetingID, teamid)
 }
 
 // EndAttendance mocks the EndAttendance method.
-func (mr *MockMeetingServiceMockRecorder) EndAttendance(meetingID uint) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EndAttendance", reflect.TypeOf((*MockMeetingService)(nil).EndAttendance), meetingID)
+func (mr *MockMeetingServiceMockRecorder) EndAttendance(meetingID, teamid uint) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EndAttendance", reflect.TypeOf((*MockMeetingService)(nil).EndAttendance), meetingID, teamid)
 }
 
 // DeleteMeetingByID mocks the DeleteMeetingByID method.
-func (mr *MockMeetingServiceMockRecorder) DeleteMeetingByID(meetingID uint) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeetingByID", reflect.TypeOf((*MockMeetingService)(nil).DeleteMeetingByID), meetingID)
+func (mr *MockMeetingServiceMockRecorder) DeleteMeetingByID(meetingID, teamid uint) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMeetingByID", reflect.TypeOf((*MockMeetingService)(nil).DeleteMeetingByID), meetingID, teamid)
 }
 
 // MarkAttendanceForUserInMeeting mocks the MarkAttendanceForUserInMeeting method.
-func (mr *MockMeetingServiceMockRecorder) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAttendanceForUserInMeeting", reflect.TypeOf((*MockMeetingService)(nil).MarkAttendanceForUserInMeeting), userID, meetingID, attendanceTime)
+func (mr *MockMeetingServiceMockRecorder) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAttendanceForUserInMeeting", reflect.TypeOf((*MockMeetingService)(nil).MarkAttendanceForUserInMeeting), userID, meetingID, attendanceTime, teamid)
 }

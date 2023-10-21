@@ -157,7 +157,7 @@ func TestMeetingController_GetMeetingDetails(t *testing.T) {
 
 	meetingController := NewMeetingController(mockService)
 
-	r.GET("/meetings/:meetingID", meetingController.GetMeetingDetails)
+	r.GET("/team/:teamID/meetings/:meetingID", meetingController.GetMeetingDetails)
 
 	// Create a test meeting input
 	now := time.Now()
@@ -179,10 +179,10 @@ func TestMeetingController_GetMeetingDetails(t *testing.T) {
 	}
 
 	// Mock the service's GetMeetingByID function
-	mockService.EXPECT().GetMeetingByID(uint(1)).Return(meeting, nil)
+	mockService.EXPECT().GetMeetingByID(uint(1), uint(1)).Return(meeting, nil)
 
 	// Perform the request
-	req, _ := http.NewRequest("GET", "/meetings/1", nil)
+	req, _ := http.NewRequest("GET", "/team/1/meetings/1", nil)
 
 	// Perform the request
 	w := httptest.NewRecorder()
@@ -210,7 +210,7 @@ func TestMeetingController_StartMeeting(t *testing.T) {
 	r := gin.Default()
 	meetingController := NewMeetingController(mockService)
 
-	r.PUT("/meetings/:meetingID/start", meetingController.StartMeeting)
+	r.PUT("/team/:teamID/meetings/:meetingID/start", meetingController.StartMeeting)
 
 	// Helper function to send a request and check the response
 	sendRequest := func(method, path string) (*httptest.ResponseRecorder, *models.Meeting) {
@@ -224,19 +224,19 @@ func TestMeetingController_StartMeeting(t *testing.T) {
 	now := time.Now().Add(time.Hour)
 	meeting := createTestMeeting(now)
 	meeting.MeetingPeriod = true
-	mockService.EXPECT().StartMeeting(uint(1)).Return(meeting, nil)
-	w, responseMeeting := sendRequest("PUT", "/meetings/1/start")
+	mockService.EXPECT().StartMeeting(uint(1), uint(1)).Return(meeting, nil)
+	w, responseMeeting := sendRequest("PUT", "/team/1/meetings/1/start")
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, meeting.Title, responseMeeting.Title)
 	assert.True(t, responseMeeting.MeetingPeriod)
 
 	// Test case 2: Invalid meeting ID
-	w, _ = sendRequest("PUT", "/meetings/jj/start")
+	w, _ = sendRequest("PUT", "/team/1/meetings/jj/start")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	// Test case 3: Meeting already ended
-	mockService.EXPECT().StartMeeting(uint(1)).Return(models.Meeting{}, errors.New("some error"))
-	w, _ = sendRequest("PUT", "/meetings/1/start")
+	mockService.EXPECT().StartMeeting(uint(1), uint(1)).Return(models.Meeting{}, errors.New("some error"))
+	w, _ = sendRequest("PUT", "/team/1/meetings/1/start")
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
@@ -250,7 +250,7 @@ func TestMeetingController_StartAttendance(t *testing.T) {
 	r := gin.Default()
 	meetingController := NewMeetingController(mockService)
 
-	r.PUT("/meetings/:meetingID/attendance/start", meetingController.StartAttendance)
+	r.PUT("/team/:teamID/meetings/:meetingID/attendance/start", meetingController.StartAttendance)
 
 	// Helper function to send a request and check the response
 	sendRequest := func(method, path string) (*httptest.ResponseRecorder, *models.Meeting) {
@@ -264,18 +264,18 @@ func TestMeetingController_StartAttendance(t *testing.T) {
 	now := time.Now().Add(time.Hour)
 	meeting := createTestMeeting(now)
 	meeting.AttendancePeriod = true
-	mockService.EXPECT().StartAttendance(uint(1)).Return(meeting, nil)
-	w, responseMeeting := sendRequest("PUT", "/meetings/1/attendance/start")
+	mockService.EXPECT().StartAttendance(uint(1), uint(1)).Return(meeting, nil)
+	w, responseMeeting := sendRequest("PUT", "/team/1/meetings/1/attendance/start")
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, meeting.Title, responseMeeting.Title)
 	assert.True(t, responseMeeting.AttendancePeriod)
 
 	// Test case 2: Invalid meeting ID
-	w, _ = sendRequest("PUT", "/meetings/jj/attendance/start")
+	w, _ = sendRequest("PUT", "/team/1/meetings/jj/attendance/start")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	// Test case 3: Meeting already ended
-	mockService.EXPECT().StartAttendance(uint(1)).Return(models.Meeting{}, errors.New("some error"))
-	w, _ = sendRequest("PUT", "/meetings/1/attendance/start")
+	mockService.EXPECT().StartAttendance(uint(1), uint(1)).Return(models.Meeting{}, errors.New("some error"))
+	w, _ = sendRequest("PUT", "/team/1/meetings/1/attendance/start")
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }

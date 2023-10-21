@@ -22,13 +22,13 @@ func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface) *Meeti
 type MeetingServiceInterface interface {
 	CreateMeeting(teamID uint, title, description, venue string, location models.Location, startTime time.Time) (models.Meeting, error)
 	GetMeetingsByTeamID(teamID uint, filterBy string, orderBy string) ([]models.Meeting, error)
-	GetMeetingByID(id uint) (models.Meeting, error)
-	StartMeeting(meetingID uint) (models.Meeting, error)
-	EndMeeting(meetingID uint) (models.Meeting, error)
-	StartAttendance(meetingID uint) (models.Meeting, error)
-	EndAttendance(meetingID uint) (models.Meeting, error)
-	DeleteMeetingByID(meetingID uint) error
-	MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time) error
+	GetMeetingByID(id uint, teamid uint) (models.Meeting, error)
+	StartMeeting(meetingID uint, teamid uint) (models.Meeting, error)
+	EndMeeting(meetingID uint, teamid uint) (models.Meeting, error)
+	StartAttendance(meetingID uint, teamid uint) (models.Meeting, error)
+	EndAttendance(meetingID uint, teamid uint) (models.Meeting, error)
+	DeleteMeetingByID(meetingID uint, teamid uint) error
+	MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) error
 }
 
 // CreateMeeting creates a new meeting in the database.
@@ -52,17 +52,21 @@ func (ms *MeetingService) CreateMeeting(teamID uint, title, description, venue s
 }
 
 // GetMeetingByID retrieves a meeting by its ID.
-func (ms *MeetingService) GetMeetingByID(id uint) (models.Meeting, error) {
+func (ms *MeetingService) GetMeetingByID(id uint, teamid uint) (models.Meeting, error) {
 	meeting, err := ms.meetingRepo.GetMeetingByID(id)
 	if err != nil {
 		return models.Meeting{}, err
+	}
+	// check if meeting teamid is same as teamid
+	if meeting.TeamID != teamid {
+		return models.Meeting{}, errors.New("meeting not found")
 	}
 	return meeting, nil
 }
 
 // StartMeeting starts a meeting by setting MeetingPeriod to true, if not MeetingOver.
-func (ms *MeetingService) StartMeeting(meetingID uint) (models.Meeting, error) {
-	meeting, err := ms.GetMeetingByID(meetingID)
+func (ms *MeetingService) StartMeeting(meetingID uint, teamid uint) (models.Meeting, error) {
+	meeting, err := ms.GetMeetingByID(meetingID, teamid)
 	if err != nil {
 		return models.Meeting{}, err
 	}
@@ -83,8 +87,8 @@ func (ms *MeetingService) StartMeeting(meetingID uint) (models.Meeting, error) {
 }
 
 // StartAttendance starts attendance for a meeting by setting AttendancePeriod to true, if meeting in progress, or if not meeting over.
-func (ms *MeetingService) StartAttendance(meetingID uint) (models.Meeting, error) {
-	meeting, err := ms.GetMeetingByID(meetingID)
+func (ms *MeetingService) StartAttendance(meetingID uint, teamID uint) (models.Meeting, error) {
+	meeting, err := ms.GetMeetingByID(meetingID, teamID)
 	if err != nil {
 		return models.Meeting{}, err
 	}
@@ -110,8 +114,8 @@ func (ms *MeetingService) StartAttendance(meetingID uint) (models.Meeting, error
 }
 
 // EndAttendance ends attendance for a meeting by setting AttendancePeriod to false.
-func (ms *MeetingService) EndAttendance(meetingID uint) (models.Meeting, error) {
-	meeting, err := ms.GetMeetingByID(meetingID)
+func (ms *MeetingService) EndAttendance(meetingID uint, teamID uint) (models.Meeting, error) {
+	meeting, err := ms.GetMeetingByID(meetingID, teamID)
 	if err != nil {
 		return models.Meeting{}, err
 	}
@@ -135,8 +139,8 @@ func (ms *MeetingService) EndAttendance(meetingID uint) (models.Meeting, error) 
 }
 
 // EndMeeting ends a meeting by setting MeetingOver to true.
-func (ms *MeetingService) EndMeeting(meetingID uint) (models.Meeting, error) {
-	meeting, err := ms.GetMeetingByID(meetingID)
+func (ms *MeetingService) EndMeeting(meetingID uint, teamID uint) (models.Meeting, error) {
+	meeting, err := ms.GetMeetingByID(meetingID, teamID)
 	if err != nil {
 		return models.Meeting{}, err
 	}
@@ -158,10 +162,10 @@ func (ms *MeetingService) EndMeeting(meetingID uint) (models.Meeting, error) {
 }
 
 // DeleteMeetingByID deletes a meeting by its ID.
-func (ms *MeetingService) DeleteMeetingByID(meetingID uint) error {
+func (ms *MeetingService) DeleteMeetingByID(meetingID uint, teamID uint) error {
 	// A meeting can only be deleted if MeetingPeriod = false and AttendancePeriod = false and MeetingOver = false. I.e., meeting hasn't started yet.
 
-	meeting, err := ms.GetMeetingByID(meetingID)
+	meeting, err := ms.GetMeetingByID(meetingID, teamID)
 	if err != nil {
 		return err
 	}
@@ -212,9 +216,9 @@ func (ms *MeetingService) GetMeetingsByTeamID(teamID uint, filterBy string, orde
 }
 
 // MarkAttendaceForUserInMeeting marks attendance for a user in a meeting.
-func (ms *MeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time) error {
+func (ms *MeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamID uint) error {
 	// If meeting not started or meeting over, return error
-	meeting, err := ms.GetMeetingByID(meetingID)
+	meeting, err := ms.GetMeetingByID(meetingID, teamID)
 	if err != nil {
 		return err
 	}

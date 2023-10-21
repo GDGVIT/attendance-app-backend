@@ -148,6 +148,7 @@ func TestMeetingService_StartMeeting(t *testing.T) {
 	// Define a mock meeting with MeetingOver = true
 	mockMeeting := models.Meeting{
 		MeetingOver: true,
+		TeamID:      1,
 		// Add other fields as needed
 	}
 
@@ -155,7 +156,7 @@ func TestMeetingService_StartMeeting(t *testing.T) {
 	mockRepo.EXPECT().GetMeetingByID(meetingID).Return(mockMeeting, nil)
 
 	// Call the StartMeeting function
-	_, err := meetingService.StartMeeting(meetingID)
+	_, err := meetingService.StartMeeting(meetingID, 1)
 
 	// Assert that an error is returned since MeetingOver is true
 	if err == nil {
@@ -170,6 +171,7 @@ func TestMeetingService_StartMeeting(t *testing.T) {
 	// Define a mock meeting with MeetingOver = false
 	mockMeeting2 := models.Meeting{
 		MeetingOver: false,
+		TeamID:      1,
 		// Add other fields as needed
 	}
 
@@ -182,7 +184,7 @@ func TestMeetingService_StartMeeting(t *testing.T) {
 	mockRepo.EXPECT().UpdateMeeting(mockMeeting2).Return(mockMeeting2, nil)
 
 	// Call the StartMeeting function
-	startedMeeting, err := meetingService.StartMeeting(meetingID2)
+	startedMeeting, err := meetingService.StartMeeting(meetingID2, 1)
 
 	// Assert that no error is returned since MeetingOver is false
 	if err != nil {
@@ -217,6 +219,7 @@ func TestMeetingService_StartAttendance(t *testing.T) {
 			meetingID: 1,
 			mockMeeting: models.Meeting{
 				MeetingOver: true,
+				TeamID:      1,
 				// Add other fields as needed
 			},
 			expectedError: true,
@@ -227,6 +230,7 @@ func TestMeetingService_StartAttendance(t *testing.T) {
 			mockMeeting: models.Meeting{
 				MeetingOver:   false,
 				MeetingPeriod: false,
+				TeamID:        1,
 			},
 			expectedError: true,
 		},
@@ -238,6 +242,7 @@ func TestMeetingService_StartAttendance(t *testing.T) {
 				MeetingPeriod:    true,
 				AttendancePeriod: false,
 				AttendanceOver:   false,
+				TeamID:           1,
 			},
 			expectedError: false,
 		},
@@ -249,6 +254,7 @@ func TestMeetingService_StartAttendance(t *testing.T) {
 				MeetingPeriod:    true,
 				AttendancePeriod: false,
 				AttendanceOver:   true,
+				TeamID:           1,
 			},
 			expectedError: false,
 		},
@@ -270,7 +276,7 @@ func TestMeetingService_StartAttendance(t *testing.T) {
 			}
 
 			// Call the StartMeeting function
-			returnedMockMeeting, err := meetingService.StartAttendance(tc.meetingID)
+			returnedMockMeeting, err := meetingService.StartAttendance(tc.meetingID, 1)
 
 			if tc.expectedError {
 				assert.Error(t, err)
@@ -307,6 +313,7 @@ func TestMeetingService_EndAttendance(t *testing.T) {
 				MeetingPeriod:    true,
 				AttendancePeriod: true,
 				AttendanceOver:   false,
+				TeamID:           1,
 			},
 			expectedError: false,
 		},
@@ -324,7 +331,7 @@ func TestMeetingService_EndAttendance(t *testing.T) {
 			mockRepo.EXPECT().UpdateMeeting(tc.mockMeeting).Return(tc.mockMeeting, nil)
 
 			// Call the StartMeeting function
-			returnedMockMeeting, err := meetingService.EndAttendance(tc.meetingID)
+			returnedMockMeeting, err := meetingService.EndAttendance(tc.meetingID, 1)
 
 			if tc.expectedError {
 				assert.Error(t, err)
@@ -358,12 +365,14 @@ func TestMeetingService_EndMeeting(t *testing.T) {
 				MeetingOver:      false,
 				AttendancePeriod: true,
 				AttendanceOver:   false,
+				TeamID:           1,
 			},
 			mockUpdateMeeting: models.Meeting{
 				MeetingPeriod:    false,
 				MeetingOver:      true,
 				AttendancePeriod: false,
 				AttendanceOver:   true,
+				TeamID:           1,
 			},
 			expectedError: false,
 		},
@@ -374,7 +383,7 @@ func TestMeetingService_EndMeeting(t *testing.T) {
 			mockRepo.EXPECT().GetMeetingByID(tc.meetingID).Return(tc.mockMeeting, nil)
 			mockRepo.EXPECT().UpdateMeeting(tc.mockUpdateMeeting).Return(tc.mockUpdateMeeting, nil)
 
-			updatedMeeting, err := meetingService.EndMeeting(tc.meetingID)
+			updatedMeeting, err := meetingService.EndMeeting(tc.meetingID, 1)
 
 			if tc.expectedError {
 				assert.Error(t, err)
@@ -408,6 +417,7 @@ func TestMeetingService_DeleteMeetingByID(t *testing.T) {
 			meetingID: 1,
 			mockMeeting: models.Meeting{
 				MeetingPeriod: true,
+				TeamID:        1,
 			},
 			expectedError: true,
 		},
@@ -416,6 +426,7 @@ func TestMeetingService_DeleteMeetingByID(t *testing.T) {
 			meetingID: 2,
 			mockMeeting: models.Meeting{
 				AttendancePeriod: true,
+				TeamID:           1,
 			},
 			expectedError: true,
 		},
@@ -424,6 +435,7 @@ func TestMeetingService_DeleteMeetingByID(t *testing.T) {
 			meetingID: 3,
 			mockMeeting: models.Meeting{
 				MeetingOver: true,
+				TeamID:      1,
 			},
 			expectedError: true,
 		},
@@ -432,6 +444,7 @@ func TestMeetingService_DeleteMeetingByID(t *testing.T) {
 			meetingID: 4,
 			mockMeeting: models.Meeting{
 				AttendanceOver: true,
+				TeamID:         1,
 			},
 			expectedError: true,
 		},
@@ -443,6 +456,7 @@ func TestMeetingService_DeleteMeetingByID(t *testing.T) {
 				AttendancePeriod: false,
 				MeetingOver:      false,
 				AttendanceOver:   false,
+				TeamID:           1,
 			},
 			expectedError: false,
 		},
@@ -457,7 +471,7 @@ func TestMeetingService_DeleteMeetingByID(t *testing.T) {
 				mockRepo.EXPECT().DeleteMeetingByID(tc.meetingID).Return(nil)
 			}
 
-			err := meetingService.DeleteMeetingByID(tc.meetingID)
+			err := meetingService.DeleteMeetingByID(tc.meetingID, 1)
 
 			if tc.expectedError {
 				assert.Error(t, err)
@@ -497,6 +511,7 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 			mockMeeting: models.Meeting{
 				MeetingPeriod: false,
 				MeetingOver:   false,
+				TeamID:        1,
 			},
 			expectedError:    true,
 			expectedOnTime:   false,
@@ -509,6 +524,7 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 			attendanceTime: time.Now(),
 			mockMeeting: models.Meeting{
 				MeetingPeriod: true,
+				TeamID:        1,
 				MeetingOver:   true,
 			},
 			expectedError:    true,
@@ -525,6 +541,7 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 				MeetingOver:      false,
 				AttendancePeriod: false,
 				AttendanceOver:   false,
+				TeamID:           1,
 			},
 			expectedError:    true,
 			expectedOnTime:   false,
@@ -540,6 +557,7 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 				MeetingOver:      false,
 				AttendancePeriod: true,
 				AttendanceOver:   false,
+				TeamID:           1,
 			},
 			expectedError:    false,
 			expectedOnTime:   true,
@@ -555,6 +573,7 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 				MeetingOver:      false,
 				AttendancePeriod: false,
 				AttendanceOver:   true,
+				TeamID:           1,
 			},
 			expectedError:    false,
 			expectedOnTime:   false,
@@ -580,7 +599,7 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 				mockRepo.EXPECT().AddMeetingAttendance(mockAttendance).Return(nil)
 			}
 
-			err := meetingService.MarkAttendanceForUserInMeeting(tc.userID, tc.meetingID, tc.attendanceTime)
+			err := meetingService.MarkAttendanceForUserInMeeting(tc.userID, tc.meetingID, tc.attendanceTime, 1)
 
 			// Assert the error based on the expected result
 			if tc.expectedError {
