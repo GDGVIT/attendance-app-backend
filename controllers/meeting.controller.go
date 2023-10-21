@@ -227,10 +227,7 @@ func (mc *MeetingController) MarkAttendance(c *gin.Context) {
 		return
 	}
 
-	// Retrieve the authenticated user from the context
 	currentUser, _ := c.Get("user")
-
-	// Type-assert the user to the models.User struct
 	userID := currentUser.(*models.User).ID
 
 	// Call the meeting service to mark attendance
@@ -242,4 +239,23 @@ func (mc *MeetingController) MarkAttendance(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Attendance marked successfully.", "onTime": onTime})
+}
+
+// GetAttendanceForMeeting retrieves attendance for a meeting.
+func (mc *MeetingController) GetAttendanceForMeeting(c *gin.Context) {
+	// Get meeting ID from route parameters
+	meetingID, teamID, err := getTeamAndMeetingFromQueryParams(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid meeting or team ID", "error": err.Error()})
+		return
+	}
+
+	// Call the meeting service to get attendance for the meeting
+	attendance, err := mc.meetingService.GetAttendanceForMeeting(meetingID, teamID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get attendance for the meeting", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, attendance)
 }

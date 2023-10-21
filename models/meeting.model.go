@@ -57,7 +57,7 @@ type MeetingAttendance struct {
 	UserID             uint      `gorm:"primaryKey;not null"`
 	MeetingID          uint      `gorm:"primaryKey;not null"`
 	AttendanceMarkedAt time.Time `gorm:"not null"`
-	OnTime             bool      `gorm:"default:true"`
+	OnTime             bool
 }
 
 func (ma *MeetingAttendance) BeforeCreate(tx *gorm.DB) error {
@@ -68,4 +68,12 @@ func (ma *MeetingAttendance) BeforeCreate(tx *gorm.DB) error {
 		return errors.New("attendance marked at cannot be zero time")
 	}
 	return nil
+}
+
+type MeetingAttendanceListResponse struct {
+	ID                 uint
+	MeetingID          uint
+	AttendanceMarkedAt time.Time
+	OnTime             bool
+	User               User
 }

@@ -29,6 +29,7 @@ type MeetingServiceInterface interface {
 	EndAttendance(meetingID uint, teamid uint) (models.Meeting, error)
 	DeleteMeetingByID(meetingID uint, teamid uint) error
 	MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) (bool, error)
+	GetAttendanceForMeeting(meetingID, teamID uint) ([]models.MeetingAttendanceListResponse, error)
 }
 
 // CreateMeeting creates a new meeting in the database.
@@ -239,17 +240,19 @@ func (ms *MeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint,
 		return false, errors.New("attendance already marked")
 	}
 
+	var onTime bool
+	// if attendance period ended (but meeting period still on), mark attendance as late
+	if meeting.AttendanceOver && meeting.MeetingPeriod {
+		onTime = false
+	} else {
+		onTime = true
+	}
+
 	meetingAttendance := models.MeetingAttendance{
 		UserID:             userID,
 		MeetingID:          meetingID,
 		AttendanceMarkedAt: attendanceTime,
-	}
-
-	// if attendance period ended (but meeting period still on), mark attendance as late
-	if meeting.AttendanceOver && meeting.MeetingPeriod {
-		meetingAttendance.OnTime = false
-	} else {
-		meetingAttendance.OnTime = true
+		OnTime:             onTime,
 	}
 
 	if err := ms.meetingRepo.AddMeetingAttendance(meetingAttendance); err != nil {
@@ -257,6 +260,37 @@ func (ms *MeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint,
 	}
 
 	return meetingAttendance.OnTime, nil
+}
+
+// GetAttendanceForMeeting retrieves attendance for a meeting.
+func (ms *MeetingService) GetAttendanceForMeeting(meetingID, teamID uint) ([]models.MeetingAttendanceListResponse, error) {
+	_, err := ms.GetMeetingByID(meetingID, teamID)
+	if err != nil {
+		return []models.MeetingAttendanceListResponse{}, err
+	}
+	attendance, err := ms.meetingRepo.GetMeetingAttendanceByMeetingID(meetingID)
+	if err != nil {
+		return nil, err
+	}
+
+	userRepo := repository.NewUserRepository()
+	// Get user details for each attendance record, and make array of MeetingAttendanceResponse
+	var attendanceResponse []models.MeetingAttendanceListResponse
+	for _, attendanceRecord := range attendance {
+		user, err := userRepo.GetUserByID(attendanceRecord.UserID)
+		if err != nil {
+			return nil, err
+		}
+		attendanceResponse = append(attendanceResponse, models.MeetingAttendanceListResponse{
+			ID:                 attendanceRecord.ID,
+			MeetingID:          attendanceRecord.MeetingID,
+			AttendanceMarkedAt: attendanceRecord.AttendanceMarkedAt,
+			OnTime:             attendanceRecord.OnTime,
+			User:               user,
+		})
+	}
+
+	return attendanceResponse, nil
 }
 
 // GetMeetingStatsByMeetingID retrieves meeting stats for a given meeting ID. Stats: total attendance, on time attendance, late attendance.

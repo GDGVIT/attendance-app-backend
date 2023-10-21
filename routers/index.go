@@ -153,6 +153,9 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// mark attendance for a user in a meeting
 		team.PATCH("/:teamID/meetings/:meetingID/attendance", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), meetingController.MarkAttendance)
+
+		// admin get attendance for a meeting
+		team.GET("/:teamID/meetings/:meetingID/attendance", middleware.BaseAuthMiddleware(), middleware.AuthorizeAdmin(), meetingController.GetAttendanceForMeeting)
 	}
 }
 
