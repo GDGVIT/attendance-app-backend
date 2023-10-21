@@ -77,3 +77,8 @@ type MeetingAttendanceListResponse struct {
 	OnTime             bool
 	User               User
 }
+
+type UserUpcomingMeetingsListResponse struct {
+	Meeting Meeting
+	Team    Team
+}

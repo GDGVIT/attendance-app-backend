@@ -259,3 +259,18 @@ func (mc *MeetingController) GetAttendanceForMeeting(c *gin.Context) {
 
 	c.JSON(http.StatusOK, attendance)
 }
+
+// UpcomingUserMeetings retrieves upcoming meetings for a user.
+func (mc *MeetingController) UpcomingUserMeetings(c *gin.Context) {
+	currentUser, _ := c.Get("user")
+	userID := currentUser.(*models.User).ID
+
+	// Call the meeting service to get upcoming meetings
+	meetings, err := mc.meetingService.UpcomingUserMeetings(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get upcoming meetings", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, meetings)
+}

@@ -30,6 +30,7 @@ type MeetingServiceInterface interface {
 	DeleteMeetingByID(meetingID uint, teamid uint) error
 	MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) (bool, error)
 	GetAttendanceForMeeting(meetingID, teamID uint) ([]models.MeetingAttendanceListResponse, error)
+	UpcomingUserMeetings(userID uint) ([]models.UserUpcomingMeetingsListResponse, error)
 }
 
 // CreateMeeting creates a new meeting in the database.
@@ -291,6 +292,43 @@ func (ms *MeetingService) GetAttendanceForMeeting(meetingID, teamID uint) ([]mod
 	}
 
 	return attendanceResponse, nil
+}
+
+// UpcomingUserMeetings retrieves all upcoming meetings for a user.
+func (ms *MeetingService) UpcomingUserMeetings(userID uint) ([]models.UserUpcomingMeetingsListResponse, error) {
+	// Get all teams for the user
+	teamMemberRepo := repository.NewTeamMemberRepository()
+	teamRepo := repository.NewTeamRepository()
+	teams, err := teamMemberRepo.GetTeamMembersByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get all meetings for each team, overall ascending order by start time
+	var meetings []models.UserUpcomingMeetingsListResponse
+	for _, team := range teams {
+		teamMeetings, err := ms.GetMeetingsByTeamID(team.TeamID, "upcoming", "asc")
+		if err != nil {
+			return nil, err
+		}
+		teamDetails, err := teamRepo.GetTeamByID(team.TeamID)
+		if err != nil {
+			return nil, err
+		}
+		for _, meeting := range teamMeetings {
+			meetings = append(meetings, models.UserUpcomingMeetingsListResponse{
+				Meeting: meeting,
+				Team:    teamDetails,
+			})
+		}
+	}
+
+	// order meetings by start time
+	sort.Slice(meetings, func(i, j int) bool {
+		return meetings[i].Meeting.StartTime.Before(meetings[j].Meeting.StartTime)
+	})
+
+	return meetings, nil
 }
 
 // GetMeetingStatsByMeetingID retrieves meeting stats for a given meeting ID. Stats: total attendance, on time attendance, late attendance.

@@ -19,10 +19,16 @@ func RegisterRoutes(route *gin.Engine) {
 
 	v1 := route.Group("/v1")
 
+	meetingRepo := repository.NewMeetingRepository()
+	meetingService := services.NewMeetingService(meetingRepo)
+	meetingController := controllers.NewMeetingController(meetingService)
+
+	userController := controllers.NewUserController()
+
+	teamController := controllers.NewTeamController()
+
 	auth := v1.Group("/auth") // Create an /auth/ group
 	{
-		userController := controllers.NewUserController() // Create an instance of the UserController
-
 		// Define the user registration route
 		auth.POST("/register", userController.RegisterUser)
 
@@ -62,8 +68,6 @@ func RegisterRoutes(route *gin.Engine) {
 
 	user := v1.Group("/user")
 	{
-		userController := controllers.NewUserController()
-
 		// Get my details
 		user.GET("/me", middleware.BaseAuthMiddleware(), userController.GetMyDetails)
 
@@ -73,14 +77,15 @@ func RegisterRoutes(route *gin.Engine) {
 		// Get my teams, query ?role=member/admin/super_admin
 		user.GET("/me/teams", middleware.BaseAuthMiddleware(), userController.GetMyTeams)
 
+		// Get my upcoming meetings
+		user.GET("/me/meetings", middleware.BaseAuthMiddleware(), meetingController.UpcomingUserMeetings)
+
 		// Get my team requests, query ?status=accepted/rejected/pending
 		user.GET("/me/requests", middleware.BaseAuthMiddleware(), userController.GetMyRequests)
 	}
 
 	team := v1.Group("/team")
 	{
-		teamController := controllers.NewTeamController()
-
 		// Get all unprotected teams
 		team.GET("/", middleware.BaseAuthMiddleware(), teamController.GetUnprotectedTeams)
 
@@ -122,10 +127,6 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// handover superadmin to another member
 		team.PATCH("/:teamID/handover", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), teamController.HandoverTeamSuperAdmin)
-
-		meetingRepo := repository.NewMeetingRepository()
-		meetingService := services.NewMeetingService(meetingRepo)
-		meetingController := controllers.NewMeetingController(meetingService)
 
 		// /:teamID/meetings to create one, by super admin
 		team.POST("/:teamID/meetings", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), meetingController.CreateMeeting)
