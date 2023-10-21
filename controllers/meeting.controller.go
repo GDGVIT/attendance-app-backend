@@ -86,3 +86,117 @@ func (mc *MeetingController) GetMeetingsByTeamID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, meetings)
 }
+
+// GetMeetingDetails retrieves a meeting by its ID.
+func (mc *MeetingController) GetMeetingDetails(c *gin.Context) {
+	// Get meeting ID from route parameters
+	meetingID, err := strconv.ParseUint(c.Param("meetingID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meeting ID"})
+		return
+	}
+
+	// Call the meeting service to get the meeting
+	meeting, err := mc.meetingService.GetMeetingByID(uint(meetingID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get the meeting", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, meeting)
+}
+
+// StartMeeting starts a meeting.
+func (mc *MeetingController) StartMeeting(c *gin.Context) {
+	// Get meeting ID from route parameters
+	meetingID, err := strconv.ParseUint(c.Param("meetingID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meeting ID"})
+		return
+	}
+
+	// Call the meeting service to start the meeting
+	meeting, err := mc.meetingService.StartMeeting(uint(meetingID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to start the meeting", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, meeting)
+}
+
+// StartAttendance starts attendance for a meeting.
+func (mc *MeetingController) StartAttendance(c *gin.Context) {
+	// Get meeting ID from route parameters
+	meetingID, err := strconv.ParseUint(c.Param("meetingID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meeting ID"})
+		return
+	}
+
+	// Call the meeting service to start attendance for the meeting
+	meeting, err := mc.meetingService.StartAttendance(uint(meetingID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to start attendance for the meeting", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, meeting)
+}
+
+// EndAttendance ends attendance for a meeting.
+func (mc *MeetingController) EndAttendance(c *gin.Context) {
+	// Get meeting ID from route parameters
+	meetingID, err := strconv.ParseUint(c.Param("meetingID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meeting ID"})
+		return
+	}
+
+	// Call the meeting service to end attendance for the meeting
+	meeting, err := mc.meetingService.EndAttendance(uint(meetingID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to end attendance for the meeting", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, meeting)
+}
+
+// EndMeeting ends a meeting.
+func (mc *MeetingController) EndMeeting(c *gin.Context) {
+	// Get meeting ID from route parameters
+	meetingID, err := strconv.ParseUint(c.Param("meetingID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meeting ID"})
+		return
+	}
+
+	// Call the meeting service to end the meeting
+	meeting, err := mc.meetingService.EndMeeting(uint(meetingID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to end the meeting", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, meeting)
+}
+
+// DeleteMeetingByID deletes a meeting by its ID.
+func (mc *MeetingController) DeleteMeetingByID(c *gin.Context) {
+	// Get meeting ID from route parameters
+	meetingID, err := strconv.ParseUint(c.Param("meetingID"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meeting ID"})
+		return
+	}
+
+	// Call the meeting service to delete the meeting
+	err = mc.meetingService.DeleteMeetingByID(uint(meetingID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to delete the meeting", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Meeting deleted successfully"})
+}

@@ -132,9 +132,28 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// get all meetings of a team, query ?meetingOver=true/false
 		team.GET("/:teamID/meetings", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), meetingController.GetMeetingsByTeamID)
+
+		// get a meeting by id
+		team.GET("/:teamID/meetings/:meetingID", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), meetingController.GetMeetingDetails)
+
+		// start a meeting
+		team.PATCH("/:teamID/meetings/:meetingID/start", middleware.BaseAuthMiddleware(), middleware.AuthorizeAdmin(), meetingController.StartMeeting)
+
+		// end a meeting
+		team.PATCH("/:teamID/meetings/:meetingID/end", middleware.BaseAuthMiddleware(), middleware.AuthorizeAdmin(), meetingController.EndMeeting)
+
+		// start attendance
+		team.PATCH("/:teamID/meetings/:meetingID/attendance/start", middleware.BaseAuthMiddleware(), middleware.AuthorizeAdmin(), meetingController.StartAttendance)
+
+		// end attendance
+		team.PATCH("/:teamID/meetings/:meetingID/attendance/end", middleware.BaseAuthMiddleware(), middleware.AuthorizeAdmin(), meetingController.EndAttendance)
+
+		// delete a meeting
+		team.DELETE("/:teamID/meetings/:meetingID", middleware.BaseAuthMiddleware(), middleware.AuthorizeSuperAdmin(), meetingController.DeleteMeetingByID)
 	}
 }
 
 // TODO delete team
 // TODO controller-service-repo pattern
 // TODO unit of work pattern
+// TODO add check meetingid belonging to teamid. And other meetingid check stuff.
