@@ -22,6 +22,13 @@ func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface) *Meeti
 type MeetingServiceInterface interface {
 	CreateMeeting(teamID uint, title, description, venue string, location models.Location, startTime time.Time) (models.Meeting, error)
 	GetMeetingsByTeamID(teamID uint, filterBy string, orderBy string) ([]models.Meeting, error)
+	GetMeetingByID(id uint) (models.Meeting, error)
+	StartMeeting(meetingID uint) (models.Meeting, error)
+	EndMeeting(meetingID uint) (models.Meeting, error)
+	StartAttendance(meetingID uint) (models.Meeting, error)
+	EndAttendance(meetingID uint) (models.Meeting, error)
+	DeleteMeetingByID(meetingID uint) error
+	MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time) error
 }
 
 // CreateMeeting creates a new meeting in the database.
@@ -91,6 +98,7 @@ func (ms *MeetingService) StartAttendance(meetingID uint) (models.Meeting, error
 	}
 
 	meeting.AttendancePeriod = true
+	meeting.AttendanceOver = false
 
 	// Update the meeting in the database
 	updatedMeeting, err := ms.meetingRepo.UpdateMeeting(meeting)
@@ -112,6 +120,7 @@ func (ms *MeetingService) EndAttendance(meetingID uint) (models.Meeting, error) 
 	// if !meeting.AttendancePeriod {
 	// 	return models.Meeting{}, errors.New("attendance cannot be ended before starting it")
 	// }
+	// Should user be able to end meeting without taking attendance?
 
 	meeting.AttendancePeriod = false
 	meeting.AttendanceOver = true
@@ -133,7 +142,8 @@ func (ms *MeetingService) EndMeeting(meetingID uint) (models.Meeting, error) {
 	}
 
 	// If attendance period is still open, close it
-	ms.EndAttendance(meetingID)
+	meeting.AttendancePeriod = false
+	meeting.AttendanceOver = true
 
 	meeting.MeetingPeriod = false
 	meeting.MeetingOver = true
@@ -202,7 +212,7 @@ func (ms *MeetingService) GetMeetingsByTeamID(teamID uint, filterBy string, orde
 }
 
 // MarkAttendaceForUserInMeeting marks attendance for a user in a meeting.
-func (ms *MeetingService) MarkAttendaceForUserInMeeting(userID, meetingID uint) error {
+func (ms *MeetingService) MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time) error {
 	// If meeting not started or meeting over, return error
 	meeting, err := ms.GetMeetingByID(meetingID)
 	if err != nil {
@@ -221,12 +231,14 @@ func (ms *MeetingService) MarkAttendaceForUserInMeeting(userID, meetingID uint) 
 	meetingAttendance := models.MeetingAttendance{
 		UserID:             userID,
 		MeetingID:          meetingID,
-		AttendanceMarkedAt: time.Now(),
+		AttendanceMarkedAt: attendanceTime,
 	}
 
 	// if attendance period ended (but meeting period still on), mark attendance as late
 	if meeting.AttendanceOver && meeting.MeetingPeriod {
 		meetingAttendance.OnTime = false
+	} else {
+		meetingAttendance.OnTime = true
 	}
 
 	if err := ms.meetingRepo.AddMeetingAttendance(meetingAttendance); err != nil {
