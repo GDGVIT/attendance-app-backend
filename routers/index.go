@@ -63,7 +63,7 @@ func RegisterRoutes(route *gin.Engine) {
 		auth.GET("/google/login", userController.GoogleLogin)
 
 		// Google Callback
-		auth.GET("/google/callback", userController.GoogleCallback)
+		auth.GET("/google/verify", userController.GoogleCallback)
 	}
 
 	user := v1.Group("/user")
@@ -163,3 +163,4 @@ func RegisterRoutes(route *gin.Engine) {
 // TODO delete team
 // TODO controller-service-repo pattern
 // TODO unit of work pattern
+// For google oauth, make slight change. Instead of redirecting to the callback on backend directly, redirect to frontend url (or app uri), and have a route which accepts the auth code that frontend sends and does wht my callback is doing rn.
