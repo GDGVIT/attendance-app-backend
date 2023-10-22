@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
 	"github.com/GDGVIT/attendance-app-backend/repository"
 )
@@ -47,6 +48,7 @@ func (ms *MeetingService) CreateMeeting(teamID uint, title, description, venue s
 	// Create the meeting in the database
 	createdMeeting, err := ms.meetingRepo.CreateMeeting(meeting)
 	if err != nil {
+		logger.Errorf("Error creating meeting: " + err.Error())
 		return models.Meeting{}, err
 	}
 
@@ -57,6 +59,7 @@ func (ms *MeetingService) CreateMeeting(teamID uint, title, description, venue s
 func (ms *MeetingService) GetMeetingByID(id uint, teamid uint) (models.Meeting, error) {
 	meeting, err := ms.meetingRepo.GetMeetingByID(id)
 	if err != nil {
+		logger.Errorf("Error getting meeting: " + err.Error())
 		return models.Meeting{}, err
 	}
 	// check if meeting teamid is same as teamid
@@ -327,6 +330,10 @@ func (ms *MeetingService) UpcomingUserMeetings(userID uint) ([]models.UserUpcomi
 	sort.Slice(meetings, func(i, j int) bool {
 		return meetings[i].Meeting.StartTime.Before(meetings[j].Meeting.StartTime)
 	})
+
+	if len(meetings) <= 0 {
+		meetings = []models.UserUpcomingMeetingsListResponse{}
+	}
 
 	return meetings, nil
 }

@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
 	"github.com/gin-gonic/gin"
 )
@@ -76,12 +77,14 @@ func (uc *UserController) GetMyTeams(c *gin.Context) {
 	if role == "" {
 		teamMembers, err = uc.teamMemberRepo.GetTeamMembersByUserID(user.ID)
 		if err != nil {
+			logger.Errorf("Failed to get teams for user %d: "+err.Error(), user.ID)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve teams"})
 			return
 		}
 	} else {
 		teamMembers, err = uc.teamMemberRepo.GetTeamMembersByUserAndRole(user.ID, role)
 		if err != nil {
+			logger.Errorf("Failed to get teams for user %d by %s: "+err.Error(), user.ID, role)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve teams"})
 			return
 		}
@@ -97,6 +100,7 @@ func (uc *UserController) GetMyTeams(c *gin.Context) {
 	for i, teamMember := range teamMembers {
 		team, err := uc.teamRepo.GetTeamByID(teamMember.TeamID)
 		if err != nil {
+			logger.Errorf("Failed to get team %d while populating: "+err.Error(), teamMember.TeamID)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve teams"})
 			return
 		}
@@ -125,12 +129,14 @@ func (uc *UserController) GetMyRequests(c *gin.Context) {
 	err := error(nil)
 	if status == "" {
 		requests, err = uc.teamEntryRequestRepo.GetTeamEntryRequestsByUserID(user.ID)
+		logger.Errorf("Failed to get requests for user %d: "+err.Error(), user.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve requests"})
 			return
 		}
 	} else {
 		requests, err = uc.teamEntryRequestRepo.GetTeamEntryRequestsByUserIDAndStatus(user.ID, status)
+		logger.Errorf("Failed to get requests for user %d by %s: "+err.Error(), user.ID, status)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve requests"})
 			return
