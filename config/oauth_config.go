@@ -19,5 +19,9 @@ var (
 func InitialiseOAuthGoogle() {
 	GoogleOAuthConfig.ClientID = viper.GetString("GOOGLE_CLIENT_ID")
 	GoogleOAuthConfig.ClientSecret = viper.GetString("GOOGLE_CLIENT_SECRET")
-	GoogleOAuthConfig.RedirectURL = viper.GetString("GOOGLE_REDIRECT_URI")
+	if viper.GetBool("DEBUG") {
+		GoogleOAuthConfig.RedirectURL = viper.GetString("GOOGLE_REDIRECT_URI")
+	} else {
+		GoogleOAuthConfig.RedirectURL = viper.GetString("GOOGLE_REDIRECT_URI_PROD")
+	}
 }

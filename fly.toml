@@ -17,6 +17,7 @@ primary_region = "sin"
 
   GOOGLE_CLIENT_ID = "377508142690-22j3k6vq9mkbp123350gat49vc4ovi1l.apps.googleusercontent.com"
   GOOGLE_REDIRECT_URI = "http://localhost:8000/v1/auth/google/callback"
+  GOOGLE_REDIRECT_URI_PROD = "https://atapp.fly.dev/v1/auth/google/callback"
   GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/auth"
   GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
