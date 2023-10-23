@@ -194,3 +194,17 @@ func SendKickNotifToUser(toEmail string, userName string, teamName string) error
 	}
 	return nil
 }
+
+// send email to all team members about a new meeting
+func SendMeetingNotifToTeamMembers(toEmail []string, teamName string, meetingName string, meetingTime time.Time) error {
+	content := "A new meeting " + meetingName + " has been scheduled for the team " + teamName + " at " + meetingTime.String() + "."
+	subject := "New Meeting."
+
+	for _, email := range toEmail {
+		err := GenericSendMail(subject, content, email, teamName+" Team")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

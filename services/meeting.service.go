@@ -8,6 +8,7 @@ import (
 	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
 	"github.com/GDGVIT/attendance-app-backend/repository"
+	"github.com/GDGVIT/attendance-app-backend/utils/email"
 )
 
 // MeetingService handles business logic related to meetings.
@@ -51,6 +52,34 @@ func (ms *MeetingService) CreateMeeting(teamID uint, title, description, venue s
 		logger.Errorf("Error creating meeting: " + err.Error())
 		return models.Meeting{}, err
 	}
+
+	// get name of team
+	teamRepo := repository.NewTeamRepository()
+	team, err := teamRepo.GetTeamByID(teamID)
+	if err != nil {
+		return models.Meeting{}, err
+	}
+
+	// get members of team and send email to each member
+	teamMemberRepo := repository.NewTeamMemberRepository()
+	teamMembers, err := teamMemberRepo.GetTeamMembersByTeamID(teamID)
+	if err != nil {
+		return models.Meeting{}, err
+	}
+
+	teamMemberEmails := []string{}
+	userRepo := repository.NewUserRepository()
+	for _, teamMember := range teamMembers {
+		user, err := userRepo.GetUserByID(teamMember.UserID)
+		if err != nil {
+			return models.Meeting{}, err
+		}
+		// add user email to teamMemberEmails
+		teamMemberEmails = append(teamMemberEmails, user.Email)
+	}
+
+	// send email to each team member
+	email.SendMeetingNotifToTeamMembers(teamMemberEmails, team.Name, meeting.Title, meeting.StartTime)
 
 	return createdMeeting, nil
 }

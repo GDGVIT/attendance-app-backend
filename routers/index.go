@@ -164,3 +164,4 @@ func RegisterRoutes(route *gin.Engine) {
 // TODO controller-service-repo pattern
 // TODO unit of work pattern
 // For google oauth, make slight change. Instead of redirecting to the callback on backend directly, redirect to frontend url (or app uri), and have a route which accepts the auth code that frontend sends and does wht my callback is doing rn.
+// TODO maybe some event broker like kafka for notifs
