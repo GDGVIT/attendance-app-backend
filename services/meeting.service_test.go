@@ -588,6 +588,9 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 
 			// If the function is expected to succeed, we should create a mock MeetingAttendance.
 			if !tc.expectedError {
+				// mock repos get attendance by user id and meeting id
+				mockRepo.EXPECT().GetMeetingAttendanceByUserIDAndMeetingID(tc.userID, tc.meetingID).Return(models.MeetingAttendance{}, errors.New("existing attendance not found"))
+
 				mockAttendance := models.MeetingAttendance{
 					MeetingID:          tc.meetingID,
 					UserID:             tc.userID,

@@ -279,3 +279,159 @@ func TestMeetingController_StartAttendance(t *testing.T) {
 	w, _ = sendRequest("PUT", "/team/1/meetings/1/attendance/start")
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
+
+// test EndAttendance
+func TestMeetingController_EndAttendance(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mocks.NewMockMeetingService(ctrl)
+
+	r := gin.Default()
+	meetingController := NewMeetingController(mockService)
+
+	r.PUT("/team/:teamID/meetings/:meetingID/attendance/end", meetingController.EndAttendance)
+
+	// Helper function to send a request and check the response
+	sendRequest := func(method, path string) (*httptest.ResponseRecorder, *models.Meeting) {
+		req, _ := http.NewRequest(method, path, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		return w, parseMeetingResponse(w)
+	}
+
+	// Test case 1: Valid request
+	now := time.Now().Add(time.Hour)
+	meeting := createTestMeeting(now)
+	meeting.AttendanceOver = true
+	mockService.EXPECT().EndAttendance(uint(1), uint(1)).Return(meeting, nil)
+	w, responseMeeting := sendRequest("PUT", "/team/1/meetings/1/attendance/end")
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, meeting.Title, responseMeeting.Title)
+	assert.True(t, responseMeeting.AttendanceOver)
+
+	// Test case 2: Invalid meeting ID
+	w, _ = sendRequest("PUT", "/team/1/meetings/jj/attendance/end")
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	// Test case 3: Meeting already ended
+	mockService.EXPECT().EndAttendance(uint(1), uint(1)).Return(models.Meeting{}, errors.New("some error"))
+	w, _ = sendRequest("PUT", "/team/1/meetings/1/attendance/end")
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestMeetingController_EndMeeting(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mocks.NewMockMeetingService(ctrl)
+
+	r := gin.Default()
+	meetingController := NewMeetingController(mockService)
+
+	r.PUT("/team/:teamID/meetings/:meetingID/end", meetingController.EndMeeting)
+
+	// Helper function to send a request and check the response
+	sendRequest := func(method, path string) (*httptest.ResponseRecorder, *models.Meeting) {
+		req, _ := http.NewRequest(method, path, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		return w, parseMeetingResponse(w)
+	}
+
+	// Test case 1: Valid request
+	now := time.Now().Add(time.Hour)
+	meeting := createTestMeeting(now)
+	meeting.MeetingOver = true
+	mockService.EXPECT().EndMeeting(uint(1), uint(1)).Return(meeting, nil)
+	w, responseMeeting := sendRequest("PUT", "/team/1/meetings/1/end")
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, meeting.Title, responseMeeting.Title)
+	assert.True(t, responseMeeting.MeetingOver)
+
+	// Test case 2: Invalid meeting ID
+	w, _ = sendRequest("PUT", "/team/1/meetings/jj/end")
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	// Test case 3: Meeting already ended
+	mockService.EXPECT().EndMeeting(uint(1), uint(1)).Return(models.Meeting{}, errors.New("some error"))
+	w, _ = sendRequest("PUT", "/team/1/meetings/1/end")
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+// test DeleteMeeting
+func TestMeetingController_DeleteMeeting(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mocks.NewMockMeetingService(ctrl)
+
+	r := gin.Default()
+	meetingController := NewMeetingController(mockService)
+
+	r.DELETE("/team/:teamID/meetings/:meetingID", meetingController.DeleteMeetingByID)
+
+	// Helper function to send a request and check the response
+	sendRequest := func(method, path string) (*httptest.ResponseRecorder, *models.Meeting) {
+		req, _ := http.NewRequest(method, path, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		return w, parseMeetingResponse(w)
+	}
+
+	// Test case 1: Valid request
+	mockService.EXPECT().DeleteMeetingByID(uint(1), uint(1)).Return(nil)
+	w, _ := sendRequest("DELETE", "/team/1/meetings/1")
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	// Test case 2: Invalid meeting ID
+	w, _ = sendRequest("DELETE", "/team/1/meetings/jj")
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	// Test case 3: Meeting already ended
+	mockService.EXPECT().DeleteMeetingByID(uint(1), uint(1)).Return(errors.New("some error"))
+	w, _ = sendRequest("DELETE", "/team/1/meetings/1")
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+// test GetAttendanceForMeeting
+func TestMeetingController_GetAttendanceForMeeting(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mocks.NewMockMeetingService(ctrl)
+
+	r := gin.Default()
+	meetingController := NewMeetingController(mockService)
+
+	r.GET("/team/:teamID/meetings/:meetingID/attendance", meetingController.GetAttendanceForMeeting)
+
+	// parseMeetingAttendanceResponse parses the response body of GetAttendanceForMeeting
+	parseMeetingAttendanceResponse := func(w *httptest.ResponseRecorder) []models.MeetingAttendanceListResponse {
+		var response []models.MeetingAttendanceListResponse
+		_ = json.NewDecoder(w.Body).Decode(&response)
+		return response
+	}
+
+	// Helper function to send a request and check the response
+	sendRequest := func(method, path string) (*httptest.ResponseRecorder, []models.MeetingAttendanceListResponse) {
+		req, _ := http.NewRequest(method, path, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		return w, parseMeetingAttendanceResponse(w)
+	}
+
+	// Test case 1: Valid request
+	mockService.EXPECT().GetAttendanceForMeeting(uint(1), uint(1)).Return([]models.MeetingAttendanceListResponse{}, nil)
+	w, _ := sendRequest("GET", "/team/1/meetings/1/attendance")
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	// Test case 2: Invalid meeting ID
+	w, _ = sendRequest("GET", "/team/1/meetings/jj/attendance")
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	// Test case 3: Meeting already ended
+	mockService.EXPECT().GetAttendanceForMeeting(uint(1), uint(1)).Return([]models.MeetingAttendanceListResponse{}, errors.New("some error"))
+	w, _ = sendRequest("GET", "/team/1/meetings/1/attendance")
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}

@@ -129,15 +129,15 @@ func (uc *UserController) GetMyRequests(c *gin.Context) {
 	err := error(nil)
 	if status == "" {
 		requests, err = uc.teamEntryRequestRepo.GetTeamEntryRequestsByUserID(user.ID)
-		logger.Errorf("Failed to get requests for user %d: "+err.Error(), user.ID)
 		if err != nil {
+			logger.Errorf("Failed to get requests for user %d: "+err.Error(), user.ID)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve requests"})
 			return
 		}
 	} else {
 		requests, err = uc.teamEntryRequestRepo.GetTeamEntryRequestsByUserIDAndStatus(user.ID, status)
-		logger.Errorf("Failed to get requests for user %d by %s: "+err.Error(), user.ID, status)
 		if err != nil {
+			logger.Errorf("Failed to get requests for user %d by %s: "+err.Error(), user.ID, status)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve requests"})
 			return
 		}

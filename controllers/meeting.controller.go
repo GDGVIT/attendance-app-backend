@@ -118,8 +118,8 @@ func (mc *MeetingController) GetMeetingDetails(c *gin.Context) {
 
 	// Call the meeting service to get the meeting
 	meeting, err := mc.meetingService.GetMeetingByID(meetingID, teamID)
-	logger.Errorf("Failed to get meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 	if err != nil {
+		logger.Errorf("Failed to get meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get the meeting", "error": err.Error()})
 		return
 	}
@@ -138,8 +138,8 @@ func (mc *MeetingController) StartMeeting(c *gin.Context) {
 
 	// Call the meeting service to start the meeting
 	meeting, err := mc.meetingService.StartMeeting(uint(meetingID), teamID)
-	logger.Warnf("Failed to start meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 	if err != nil {
+		logger.Warnf("Failed to start meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to start the meeting", "error": err.Error()})
 		return
 	}
@@ -158,8 +158,8 @@ func (mc *MeetingController) StartAttendance(c *gin.Context) {
 
 	// Call the meeting service to start attendance for the meeting
 	meeting, err := mc.meetingService.StartAttendance(uint(meetingID), teamID)
-	logger.Warnf("Failed to start attendance for meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 	if err != nil {
+		logger.Warnf("Failed to start attendance for meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to start attendance for the meeting", "error": err.Error()})
 		return
 	}
@@ -178,8 +178,8 @@ func (mc *MeetingController) EndAttendance(c *gin.Context) {
 
 	// Call the meeting service to end attendance for the meeting
 	meeting, err := mc.meetingService.EndAttendance(uint(meetingID), teamID)
-	logger.Warnf("Failed to end attendance for meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 	if err != nil {
+		logger.Warnf("Failed to end attendance for meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to end attendance for the meeting", "error": err.Error()})
 		return
 	}
@@ -198,8 +198,8 @@ func (mc *MeetingController) EndMeeting(c *gin.Context) {
 
 	// Call the meeting service to end the meeting
 	meeting, err := mc.meetingService.EndMeeting(uint(meetingID), teamID)
-	logger.Warnf("Failed to end meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 	if err != nil {
+		logger.Warnf("Failed to end meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to end the meeting", "error": err.Error()})
 		return
 	}
@@ -218,8 +218,8 @@ func (mc *MeetingController) DeleteMeetingByID(c *gin.Context) {
 
 	// Call the meeting service to delete the meeting
 	err = mc.meetingService.DeleteMeetingByID(uint(meetingID), teamID)
-	logger.Warnf("Failed to delete meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 	if err != nil {
+		logger.Warnf("Failed to delete meeting (meeting: %d, team:%d): "+err.Error(), meetingID, teamID)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to delete the meeting", "error": err.Error()})
 		return
 	}
