@@ -14,6 +14,16 @@ func NewTeamRepository() *TeamRepository {
 	return &TeamRepository{database.DB}
 }
 
+type TeamRepositoryInterface interface {
+	CreateTeam(team models.Team) (models.Team, error)
+	GetTeamByID(id uint) (models.Team, error)
+	GetTeamByInvite(inviteCode string) (models.Team, error)
+	UpdateTeam(team models.Team) (models.Team, error)
+	DeleteTeamByID(id uint) error
+	GetUnprotectedTeams() ([]models.Team, error)
+	UpdateTeamSuperAdmin(teamID, userID uint) (models.Team, error)
+}
+
 // CreateTeam creates a new team in the database.
 func (tr *TeamRepository) CreateTeam(team models.Team) (models.Team, error) {
 	if err := tr.db.Create(&team).Error; err != nil {

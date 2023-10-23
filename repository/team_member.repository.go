@@ -14,6 +14,20 @@ func NewTeamMemberRepository() *TeamMemberRepository {
 	return &TeamMemberRepository{database.DB}
 }
 
+type TeamMemberRepositoryInterface interface {
+	CreateTeamMember(teamMember models.TeamMember) (models.TeamMember, error)
+	GetTeamMemberByID(teamID, userID uint) (models.TeamMember, error)
+	UpdateTeamMember(teamMember models.TeamMember) (models.TeamMember, error)
+	DeleteTeamMember(teamID, userID uint) error
+	GetTeamMembersByTeamID(teamID uint) ([]models.TeamMember, error)
+	GetTeamMembersByUserID(userID uint) ([]models.TeamMember, error)
+	GetTeamMembersByUserAndRole(userID uint, role string) ([]models.TeamMember, error)
+	GetTeamMembersByTeamAndRole(teamID uint, role string) ([]models.TeamMember, error)
+	GetAdminTeamByTeamID(teamID uint) ([]models.TeamMember, error)
+	UpdateTeamMemberRole(teamMemberID uint, role string) (models.TeamMember, error)
+	DeleteTeamMemberByUserID(userID uint) error
+}
+
 // CreateTeamMember creates a new TeamMember record.
 func (tmr *TeamMemberRepository) CreateTeamMember(teamMember models.TeamMember) (models.TeamMember, error) {
 	if err := tmr.db.Create(&teamMember).Error; err != nil {
