@@ -17,7 +17,8 @@ func TestMeetingService_CreateMeeting(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
-	service := NewMeetingService(mockRepo)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	service := NewMeetingService(mockRepo, mockEmailService)
 
 	// Mock Repository Call
 	meeting := models.Meeting{
@@ -35,6 +36,9 @@ func TestMeetingService_CreateMeeting(t *testing.T) {
 
 	// continue
 	mockRepo.EXPECT().CreateMeeting(meeting).Return(meeting, nil)
+
+	// Mock the SendMeetingNotification method on the EmailService
+	mockEmailService.EXPECT().SendMeetingNotification(meeting.TeamID, meeting).Return(nil)
 
 	// Call the service
 	createdMeeting, err := service.CreateMeeting(meeting.TeamID, meeting.Title, meeting.Description, meeting.Venue, meeting.Location, meeting.StartTime)
@@ -79,7 +83,8 @@ func TestMeetingService_GetMeetingsByTeamIDAndMeetingOver(t *testing.T) {
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
 
 	// Create a test MeetingService with the mock repository
-	service := NewMeetingService(mockRepo)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	service := NewMeetingService(mockRepo, mockEmailService)
 
 	// Define test data
 	teamID := uint(1)
@@ -138,7 +143,8 @@ func TestMeetingService_StartMeeting(t *testing.T) {
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
 
 	// Create a new MeetingService with the mock repository
-	meetingService := NewMeetingService(mockRepo)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService)
 
 	// TC1
 
@@ -206,7 +212,8 @@ func TestMeetingService_StartAttendance(t *testing.T) {
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
 
 	// Create a new MeetingService with the mock repository
-	meetingService := NewMeetingService(mockRepo)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService)
 
 	testCases := []struct {
 		name          string
@@ -297,7 +304,8 @@ func TestMeetingService_EndAttendance(t *testing.T) {
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
 
 	// Create a new MeetingService with the mock repository
-	meetingService := NewMeetingService(mockRepo)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService)
 
 	testCases := []struct {
 		name          string
@@ -348,7 +356,8 @@ func TestMeetingService_EndMeeting(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
-	meetingService := NewMeetingService(mockRepo)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService)
 
 	testCases := []struct {
 		name              string
@@ -404,7 +413,8 @@ func TestMeetingService_DeleteMeetingByID(t *testing.T) {
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
 
 	// Create a new MeetingService with the mock repository
-	meetingService := NewMeetingService(mockRepo)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService)
 
 	testCases := []struct {
 		name          string
@@ -491,7 +501,8 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
 
 	// Create a new MeetingService with the mock repository
-	meetingService := NewMeetingService(mockRepo)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService)
 
 	testCases := []struct {
 		name             string

@@ -8,17 +8,17 @@ import (
 	"github.com/GDGVIT/attendance-app-backend/infra/logger"
 	"github.com/GDGVIT/attendance-app-backend/models"
 	"github.com/GDGVIT/attendance-app-backend/repository"
-	"github.com/GDGVIT/attendance-app-backend/utils/email"
 )
 
 // MeetingService handles business logic related to meetings.
 type MeetingService struct {
-	meetingRepo repository.MeetingRepositoryInterface
+	meetingRepo  repository.MeetingRepositoryInterface
+	emailService EmailServiceInterface
 }
 
 // NewMeetingService creates a new MeetingService.
-func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface) *MeetingService {
-	return &MeetingService{meetingRepo}
+func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface, emailService EmailServiceInterface) *MeetingService {
+	return &MeetingService{meetingRepo, emailService}
 }
 
 type MeetingServiceInterface interface {
@@ -53,33 +53,8 @@ func (ms *MeetingService) CreateMeeting(teamID uint, title, description, venue s
 		return models.Meeting{}, err
 	}
 
-	// get name of team
-	teamRepo := repository.NewTeamRepository()
-	team, err := teamRepo.GetTeamByID(teamID)
-	if err != nil {
-		return models.Meeting{}, err
-	}
-
-	// get members of team and send email to each member
-	teamMemberRepo := repository.NewTeamMemberRepository()
-	teamMembers, err := teamMemberRepo.GetTeamMembersByTeamID(teamID)
-	if err != nil {
-		return models.Meeting{}, err
-	}
-
-	teamMemberEmails := []string{}
-	userRepo := repository.NewUserRepository()
-	for _, teamMember := range teamMembers {
-		user, err := userRepo.GetUserByID(teamMember.UserID)
-		if err != nil {
-			return models.Meeting{}, err
-		}
-		// add user email to teamMemberEmails
-		teamMemberEmails = append(teamMemberEmails, user.Email)
-	}
-
-	// send email to each team member
-	email.SendMeetingNotifToTeamMembers(teamMemberEmails, team.Name, meeting.Title, meeting.StartTime)
+	// use email service to send email to all team members
+	ms.emailService.SendMeetingNotification(teamID, createdMeeting)
 
 	return createdMeeting, nil
 }
