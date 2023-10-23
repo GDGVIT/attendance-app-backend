@@ -182,3 +182,100 @@ func TestTeamEntryRequestRepository_GetTeamEntryRequestsByTeamIDAndStatus(t *tes
 		t.Errorf("Expected 1 request, but got %d", len(retrievedRequests))
 	}
 }
+
+func TestTeamEntryRequestRepository_GetTeamEntryRequestByTeamIDAndUserID(t *testing.T) {
+	db, err := test_utils.SetupTestDB()
+	if err != nil {
+		t.Fatalf("Failed to set up the test database: %v", err)
+	}
+	defer db.Migrator().DropTable(&models.TeamEntryRequest{})
+
+	repository := NewTeamEntryRequestRepository()
+	repository.db = db
+
+	requests := []models.TeamEntryRequest{
+		{TeamID: 1, UserID: 1, Status: models.TeamEntryRequestApproved},
+		{TeamID: 1, UserID: 2, Status: models.TeamEntryRequestPending},
+		{TeamID: 2, UserID: 3, Status: models.TeamEntryRequestApproved},
+	}
+
+	for _, request := range requests {
+		repository.CreateTeamEntryRequest(request)
+	}
+
+	retrievedRequest, err := repository.GetTeamEntryRequestByTeamIDAndUserID(1, 1)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	if retrievedRequest.UserID != 1 {
+		t.Errorf("Expected 1 request, but got %d", retrievedRequest.UserID)
+	}
+}
+
+func TestTeamEntryRequestRepository_DeleteTeamEntryRequestByID(t *testing.T) {
+	db, err := test_utils.SetupTestDB()
+	if err != nil {
+		t.Fatalf("Failed to set up the test database: %v", err)
+	}
+	defer db.Migrator().DropTable(&models.TeamEntryRequest{})
+
+	repository := NewTeamEntryRequestRepository()
+	repository.db = db
+
+	request := models.TeamEntryRequest{
+		TeamID: 1,
+		UserID: 1,
+		Status: models.TeamEntryRequestPending,
+	}
+
+	createdRequest, err := repository.CreateTeamEntryRequest(request)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	err = repository.DeleteTeamEntryRequestByID(createdRequest.ID)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	_, err = repository.GetTeamEntryRequestByID(createdRequest.ID)
+	if err == nil {
+		t.Errorf("Expected error, but got: %v", err)
+	}
+}
+
+func TestTeamEntryRequestRepository_DeleteTeamEntryRequestsByUserID(t *testing.T) {
+	db, err := test_utils.SetupTestDB()
+	if err != nil {
+		t.Fatalf("Failed to set up the test database: %v", err)
+	}
+	defer db.Migrator().DropTable(&models.TeamEntryRequest{})
+
+	repository := NewTeamEntryRequestRepository()
+	repository.db = db
+
+	requests := []models.TeamEntryRequest{
+		{TeamID: 1, UserID: 1, Status: models.TeamEntryRequestApproved},
+		{TeamID: 1, UserID: 2, Status: models.TeamEntryRequestPending},
+		{TeamID: 2, UserID: 3, Status: models.TeamEntryRequestApproved},
+	}
+
+	for _, request := range requests {
+		repository.CreateTeamEntryRequest(request)
+	}
+
+	err = repository.DeleteTeamEntryRequestsByUserID(1)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	retrievedRequests, err := repository.GetTeamEntryRequestsByUserID(1)
+	if err != nil {
+		t.Errorf("Expected no error, but got: %v", err)
+	}
+
+	if len(retrievedRequests) != 0 {
+		t.Errorf("Expected 0 requests, but got %d", len(retrievedRequests))
+	}
+}

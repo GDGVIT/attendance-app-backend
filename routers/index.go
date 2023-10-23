@@ -20,8 +20,11 @@ func RegisterRoutes(route *gin.Engine) {
 	v1 := route.Group("/v1")
 
 	meetingRepo := repository.NewMeetingRepository()
-	emailService := services.NewEmailService(repository.NewTeamRepository(), repository.NewTeamMemberRepository(), repository.NewUserRepository())
-	meetingService := services.NewMeetingService(meetingRepo, emailService)
+	teamRepo := repository.NewTeamRepository()
+	userRepo := repository.NewUserRepository()
+	teamMemberRepo := repository.NewTeamMemberRepository()
+	emailService := services.NewEmailService(teamRepo, teamMemberRepo, userRepo)
+	meetingService := services.NewMeetingService(meetingRepo, emailService, userRepo, teamRepo, teamMemberRepo)
 	meetingController := controllers.NewMeetingController(meetingService)
 
 	userController := controllers.NewUserController()

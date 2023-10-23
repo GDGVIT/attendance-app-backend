@@ -18,7 +18,10 @@ func TestMeetingService_CreateMeeting(t *testing.T) {
 
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
 	mockEmailService := mocks.NewMockEmailService(ctrl)
-	service := NewMeetingService(mockRepo, mockEmailService)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	service := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
 
 	// Mock Repository Call
 	meeting := models.Meeting{
@@ -84,7 +87,10 @@ func TestMeetingService_GetMeetingsByTeamIDAndMeetingOver(t *testing.T) {
 
 	// Create a test MeetingService with the mock repository
 	mockEmailService := mocks.NewMockEmailService(ctrl)
-	service := NewMeetingService(mockRepo, mockEmailService)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	service := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
 
 	// Define test data
 	teamID := uint(1)
@@ -144,7 +150,10 @@ func TestMeetingService_StartMeeting(t *testing.T) {
 
 	// Create a new MeetingService with the mock repository
 	mockEmailService := mocks.NewMockEmailService(ctrl)
-	meetingService := NewMeetingService(mockRepo, mockEmailService)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
 
 	// TC1
 
@@ -213,7 +222,10 @@ func TestMeetingService_StartAttendance(t *testing.T) {
 
 	// Create a new MeetingService with the mock repository
 	mockEmailService := mocks.NewMockEmailService(ctrl)
-	meetingService := NewMeetingService(mockRepo, mockEmailService)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
 
 	testCases := []struct {
 		name          string
@@ -305,7 +317,10 @@ func TestMeetingService_EndAttendance(t *testing.T) {
 
 	// Create a new MeetingService with the mock repository
 	mockEmailService := mocks.NewMockEmailService(ctrl)
-	meetingService := NewMeetingService(mockRepo, mockEmailService)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
 
 	testCases := []struct {
 		name          string
@@ -357,7 +372,10 @@ func TestMeetingService_EndMeeting(t *testing.T) {
 
 	mockRepo := mocks.NewMockMeetingRepository(ctrl)
 	mockEmailService := mocks.NewMockEmailService(ctrl)
-	meetingService := NewMeetingService(mockRepo, mockEmailService)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
 
 	testCases := []struct {
 		name              string
@@ -414,7 +432,10 @@ func TestMeetingService_DeleteMeetingByID(t *testing.T) {
 
 	// Create a new MeetingService with the mock repository
 	mockEmailService := mocks.NewMockEmailService(ctrl)
-	meetingService := NewMeetingService(mockRepo, mockEmailService)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
 
 	testCases := []struct {
 		name          string
@@ -502,7 +523,10 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 
 	// Create a new MeetingService with the mock repository
 	mockEmailService := mocks.NewMockEmailService(ctrl)
-	meetingService := NewMeetingService(mockRepo, mockEmailService)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
 
 	testCases := []struct {
 		name             string
@@ -623,4 +647,133 @@ func TestMeetingService_MarkAttendanceForUserInMeeting(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMeetingService_GetAttendanceForMeeting(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockMeetingRepository(ctrl)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
+
+	// Define common test data
+	meetingID := uint(1)
+	teamID := uint(2)
+
+	t.Run("Meeting Found", func(t *testing.T) {
+		// Mock GetMeetingByID to return a mock meeting with the specified meetingID
+		mockRepo.EXPECT().GetMeetingByID(meetingID).Return(models.Meeting{TeamID: teamID}, nil)
+
+		// Mock GetMeetingAttendanceByMeetingID
+		attendanceData := []models.MeetingAttendance{
+			{
+				MeetingID:          meetingID,
+				AttendanceMarkedAt: time.Now(),
+				OnTime:             true,
+				UserID:             3,
+			},
+			// Add more attendance records as needed
+		}
+		mockRepo.EXPECT().GetMeetingAttendanceByMeetingID(meetingID).Return(attendanceData, nil)
+
+		// Mock GetUserByID for each attendance record
+		userData := models.User{
+			Name:  "John Doe",
+			Email: "john@example.com",
+			// Add other user data as needed
+		}
+		mockUserRepo.EXPECT().GetUserByID(3).Return(userData, nil).AnyTimes()
+
+		// Call the method under test
+		attendanceResponse, err := meetingService.GetAttendanceForMeeting(meetingID, teamID)
+
+		// Check the results
+		assert.NoError(t, err)
+		assert.NotNil(t, attendanceResponse)
+		// Add more assertions as needed to validate the response
+	})
+
+	t.Run("Meeting Not Found", func(t *testing.T) {
+		// Mock GetMeetingByID to return an error for a non-existing meeting
+		mockRepo.EXPECT().GetMeetingByID(meetingID).Return(models.Meeting{}, errors.New("meeting not found"))
+
+		// Call the method under test
+		attendanceResponse, err := meetingService.GetAttendanceForMeeting(meetingID, teamID)
+
+		// Check the error result
+		assert.Error(t, err)
+		assert.Equal(t, "meeting not found", err.Error())
+		assert.Empty(t, attendanceResponse)
+	})
+
+	t.Run("Meeting Attendance Retrieval Error", func(t *testing.T) {
+		// Mock GetMeetingByID to return a mock meeting
+		mockRepo.EXPECT().GetMeetingByID(meetingID).Return(models.Meeting{TeamID: teamID}, nil)
+
+		// Mock GetMeetingAttendanceByMeetingID to return an error
+		mockRepo.EXPECT().GetMeetingAttendanceByMeetingID(meetingID).Return(nil, errors.New("attendance retrieval error"))
+
+		// Call the method under test
+		attendanceResponse, err := meetingService.GetAttendanceForMeeting(meetingID, teamID)
+
+		// Check the error result
+		assert.Error(t, err)
+		assert.Equal(t, "attendance retrieval error", err.Error())
+		assert.Empty(t, attendanceResponse)
+	})
+}
+
+func TestMeetingService_UpcomingUserMeetings(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockMeetingRepository(ctrl)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
+
+	// Define test data
+	userID := uint(1)
+	teamID := uint(2)
+
+	mockTeamMemberRepo.EXPECT().GetTeamMembersByUserID(userID).Return([]models.TeamMember{
+		{
+			TeamID: teamID,
+		},
+	}, nil)
+
+	// Mock GetMeetingsByTeamIDAndMeetingOver
+	meetingData := []models.Meeting{
+		{
+			TeamID:      teamID,
+			Title:       "Sample Meeting",
+			Description: "Description",
+			Venue:       "Venue",
+			Location: models.Location{
+				Latitude:  10.0,
+				Longitude: 20.0,
+				Altitude:  30.0,
+			},
+			StartTime: time.Now().Add(time.Hour * 24),
+		},
+		// Add more meetings as needed
+	}
+	mockRepo.EXPECT().GetMeetingsByTeamIDAndMeetingOver(teamID, false).Return(meetingData, nil)
+
+	// Mock GetTeamMemberByUserIDAndTeamID
+	mockTeamRepo.EXPECT().GetTeamByID(teamID).Return(models.Team{}, nil)
+
+	// Call the method under test
+	meetings, err := meetingService.UpcomingUserMeetings(userID)
+
+	// Check the results
+	assert.NoError(t, err)
+	assert.NotNil(t, meetings)
+	assert.Equal(t, meetingData[0].Title, meetings[0].Meeting.Title)
 }

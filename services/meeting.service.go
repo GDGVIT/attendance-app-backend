@@ -12,13 +12,22 @@ import (
 
 // MeetingService handles business logic related to meetings.
 type MeetingService struct {
-	meetingRepo  repository.MeetingRepositoryInterface
-	emailService EmailServiceInterface
+	meetingRepo    repository.MeetingRepositoryInterface
+	emailService   EmailServiceInterface
+	userRepo       repository.UserRepositoryInterface
+	teamRepo       repository.TeamRepositoryInterface
+	teamMemberRepo repository.TeamMemberRepositoryInterface
 }
 
 // NewMeetingService creates a new MeetingService.
-func NewMeetingService(meetingRepo repository.MeetingRepositoryInterface, emailService EmailServiceInterface) *MeetingService {
-	return &MeetingService{meetingRepo, emailService}
+func NewMeetingService(
+	meetingRepo repository.MeetingRepositoryInterface,
+	emailService EmailServiceInterface,
+	userRepo repository.UserRepositoryInterface,
+	teamRepo repository.TeamRepositoryInterface,
+	teamMemberRepo repository.TeamMemberRepositoryInterface,
+) *MeetingService {
+	return &MeetingService{meetingRepo, emailService, userRepo, teamRepo, teamMemberRepo}
 }
 
 type MeetingServiceInterface interface {
@@ -281,11 +290,10 @@ func (ms *MeetingService) GetAttendanceForMeeting(meetingID, teamID uint) ([]mod
 		return nil, err
 	}
 
-	userRepo := repository.NewUserRepository()
 	// Get user details for each attendance record, and make array of MeetingAttendanceResponse
 	var attendanceResponse []models.MeetingAttendanceListResponse
 	for _, attendanceRecord := range attendance {
-		user, err := userRepo.GetUserByID(attendanceRecord.UserID)
+		user, err := ms.userRepo.GetUserByID(attendanceRecord.UserID)
 		if err != nil {
 			return nil, err
 		}
@@ -304,9 +312,7 @@ func (ms *MeetingService) GetAttendanceForMeeting(meetingID, teamID uint) ([]mod
 // UpcomingUserMeetings retrieves all upcoming meetings for a user.
 func (ms *MeetingService) UpcomingUserMeetings(userID uint) ([]models.UserUpcomingMeetingsListResponse, error) {
 	// Get all teams for the user
-	teamMemberRepo := repository.NewTeamMemberRepository()
-	teamRepo := repository.NewTeamRepository()
-	teams, err := teamMemberRepo.GetTeamMembersByUserID(userID)
+	teams, err := ms.teamMemberRepo.GetTeamMembersByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +324,7 @@ func (ms *MeetingService) UpcomingUserMeetings(userID uint) ([]models.UserUpcomi
 		if err != nil {
 			return nil, err
 		}
-		teamDetails, err := teamRepo.GetTeamByID(team.TeamID)
+		teamDetails, err := ms.teamRepo.GetTeamByID(team.TeamID)
 		if err != nil {
 			return nil, err
 		}
