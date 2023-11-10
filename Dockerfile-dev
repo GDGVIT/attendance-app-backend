@@ -1,0 +1,17 @@
+FROM golang:1.20-alpine
+
+WORKDIR /app
+
+RUN go install github.com/cosmtrek/air@latest
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Add the source code
+COPY . .
+
+# Set the DEBUG environment variable to True in development
+ENV DEBUG=True
+
+# Set the entry point to run the application with Air
+CMD ["air"]

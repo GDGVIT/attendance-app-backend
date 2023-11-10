@@ -1,26 +1,23 @@
-ARG PYTHON_VERSION=3.10-slim-buster
+# Start from golang base image
+FROM golang:1.20-alpine as builder
 
-FROM python:${PYTHON_VERSION}
+# Install git.
+RUN apk update && apk add --no-cache git
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Set the working directory
+WORKDIR /app
 
-RUN mkdir -p /code
+# Copy only necessary files
+COPY go.mod go.sum ./
+COPY . .
 
-WORKDIR /code
+# Build the Go application
+RUN go build -o app
 
-COPY requirements.txt /tmp/requirements.txt
-
-RUN set -ex && \
-    pip install --upgrade pip && \
-    pip install -r /tmp/requirements.txt && \
-    rm -rf /root/.cache/
-
-COPY . /code/
-
-RUN python manage.py collectstatic --noinput
+# Set the DEBUG environment variable to False in production
+ENV DEBUG=False
 
 EXPOSE 8000
 
-# replace demo.wsgi with <project_name>.wsgi
-CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "backend.wsgi:application"]
+# Set the entry point for your application
+CMD ["./app"]

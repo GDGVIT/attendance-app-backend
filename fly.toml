@@ -1,46 +1,36 @@
-# fly.toml file generated for restless-sea-3409 on 2022-12-18T22:51:18+05:30
+# fly.toml app configuration file generated for atapp on 2023-10-16T18:27:08+05:30
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "restless-sea-3409"
-kill_signal = "SIGINT"
-kill_timeout = 5
-processes = []
+app = "atapp"
+primary_region = "sin"
 
-[deploy]
-  release_command = "python manage.py migrate"
+[build]
 
 [env]
-  PORT = "8000"
+  ALLOWED_HOSTS = "0.0.0.0"
+  SERVER_HOST = "0.0.0.0"
+  SERVER_PORT = "8000"
 
-[experimental]
-  allowed_public_ports = []
-  auto_rollback = true
+  TOKEN_HOUR_LIFESPAN = "24"
 
-[[services]]
-  http_checks = []
+  GOOGLE_CLIENT_ID = "377508142690-22j3k6vq9mkbp123350gat49vc4ovi1l.apps.googleusercontent.com"
+  GOOGLE_REDIRECT_URI = "http://localhost:8000/v1/auth/google/callback"
+  GOOGLE_REDIRECT_URI_PROD = "https://atapp.fly.dev/v1/auth/google/callback"
+  GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/auth"
+  GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+
+  FRONTEND_SOCIAL_REDIRECT = "http://127.0.0.1:8000/socialback"
+
+[mounts]
+  source = "app_logs"
+  destination = "/app_logs"
+
+[http_service]
   internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
   processes = ["app"]
-  protocol = "tcp"
-  script_checks = []
-  [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "connections"
-
-  [[services.ports]]
-    force_https = true
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
-
-  [[services.tcp_checks]]
-    grace_period = "1s"
-    interval = "15s"
-    restart_limit = 0
-    timeout = "2s"
-
-[[statics]]
-  guest_path = "/app/public"
-  url_prefix = "/static/"
