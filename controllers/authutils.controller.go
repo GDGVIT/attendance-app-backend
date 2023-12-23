@@ -136,7 +136,7 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 
 	if err := auth.VerifyPassword(resetPasswordInput.OldPassword, currentPwdAuth.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Incorrect current password", "message": "Please enter your current password correctly."})
-		email.GenericSendMail("Password Reset Attempt", "Somebody attempted to change your password on Bookstore. Secure your account if this was not you.", currentUser.Email, currentUser.Name)
+		email.GenericSendMail("Password Reset Attempt", "Somebody attempted to change your password on Nock. Secure your account if this was not you.", currentUser.Email, currentUser.Name)
 		return
 	}
 
@@ -160,7 +160,7 @@ func (uc *UserController) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	email.GenericSendMail("Password Reset Successfully", "Your password for Bookstore was changed. Secure your account if this was not you.", currentUser.Email, currentUser.Name)
+	email.GenericSendMail("Password Reset Successfully", "Your password for Nock was changed. Secure your account if this was not you.", currentUser.Email, currentUser.Name)
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
 }
 

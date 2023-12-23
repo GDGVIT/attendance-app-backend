@@ -92,7 +92,7 @@ func SendRegistrationMail(subject string, content string, toEmail string, userID
 	otp := ""
 	if newUser {
 		otp = GenerateOTP(6)
-		content += "http://bookstore.anrdhmshr.tech/verify?email=" + toEmail + "&otp=" + otp
+		content += viper.GetString("FRONTEND_BASE") + "/verify?email=" + toEmail + "&otp=" + otp
 	}
 
 	err := GenericSendMail(subject, content, toEmail, userName)
@@ -115,8 +115,8 @@ func SendDeletionMail(toEmail string, userID uint, userName string) error {
 	otp := ""
 	otp = GenerateOTP(6)
 	confirmationURL := ""
-	confirmationURL += "http://bookstore.anrdhmshr.tech/delete-account?email=" + toEmail + "&otp=" + otp
-	content := "A request for the deletion of the bookstore account associated with your user has been made. If this was not you, please change your password. Otherwise, click on this link to confirm account deletion: " + confirmationURL + " . This link will be active for 3 minutes."
+	confirmationURL += viper.GetString("FRONTEND_BASE") + "/delete-account?email=" + toEmail + "&otp=" + otp
+	content := "A request for the deletion of the nock account associated with your user has been made. If this was not you, please change your password. Otherwise, click on this link to confirm account deletion: " + confirmationURL + " . This link will be active for 3 minutes."
 	subject := "Request for account deletion."
 
 	err := GenericSendMail(subject, content, toEmail, userName)
@@ -138,7 +138,7 @@ func SendForgotPasswordMail(toEmail string, userID uint, userName string) error 
 	otp := ""
 	otp = GenerateOTP(6)
 	verificationURL := ""
-	verificationURL += "http://bookstore.anrdhmshr.tech/set-forgotten-password?email=" + toEmail + "&otp=" + otp
+	verificationURL += viper.GetString("FRONTEND_BASE") + "/set-forgotten-password?email=" + toEmail + "&otp=" + otp
 	content := "A forgot password request was made for the email associated with your account. If this was not you, feel free to ignore this email. Otherwise, click on this link to post your new password: " + verificationURL + " . This link will be active for 3 minutes."
 	subject := "Forgot Password."
 
