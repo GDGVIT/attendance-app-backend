@@ -42,6 +42,7 @@
 ```bash
 git clone https://github.com/GDGVIT/attendance-app-backend.git
 ```
+Add all environment variables from the `.env.example` file. For local dev, you can just add all to a `.env` file. For prod, utilise some sort of secret management for the marked variables (such as `GOOGLE_CLIENT_SECRET`) before deploying.
 
 ### Direction to Execute
 
@@ -55,6 +56,7 @@ make prod
 # remove prod container
 make remove-prod
 ```
+The server should be up on 0.0.0.0:8000
 
 ## Contributors
 
