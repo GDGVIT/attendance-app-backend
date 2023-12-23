@@ -293,6 +293,40 @@ func (tc *TeamController) GetTeamByID(c *gin.Context) {
 	c.JSON(http.StatusOK, team)
 }
 
+// GetCurrentUserRoleInTeam retrieves the current user's role in the team.
+func (tc *TeamController) GetCurrentUserRoleInTeam(c *gin.Context) {
+	// Get the current user
+	currentUser, _ := c.Get("user")
+	user, ok := currentUser.(*models.User)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get the current user"})
+		return
+	}
+
+	// Get the team ID from the route parameter
+	teamID, err := strconv.Atoi(c.Param("teamID"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
+		return
+	}
+
+	// Get the team
+	_, err = tc.teamRepo.GetTeamByID(uint(teamID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Team not found"})
+		return
+	}
+
+	// Get the team member
+	teamMember, err := tc.teamMemberRepo.GetTeamMemberByID(uint(teamID), user.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User is not a member of the team"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"role": teamMember.Role})
+}
+
 // GetTeamMembers retrieves all team members for a given team.
 func (tc *TeamController) GetTeamMembers(c *gin.Context) {
 	// Get the team ID from the route parameter

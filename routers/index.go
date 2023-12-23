@@ -117,6 +117,9 @@ func RegisterRoutes(route *gin.Engine) {
 		// same as /team/invite/:inviteCode, for uniformity with next routes
 		team.GET("/:teamID", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), teamController.GetTeamByID)
 
+		// get current user's role in a team
+		team.GET("/:teamID/myrole", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), teamController.GetCurrentUserRoleInTeam)
+
 		// get team members, query ?role=member/admin/super_admin
 		team.GET("/:teamID/members", middleware.BaseAuthMiddleware(), middleware.AuthorizeMember(), teamController.GetTeamMembers)
 
