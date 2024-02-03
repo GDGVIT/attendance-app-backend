@@ -283,3 +283,18 @@ func (mc *MeetingController) UpcomingUserMeetings(c *gin.Context) {
 
 	c.JSON(http.StatusOK, meetings)
 }
+
+// GetUserAttendanceRecords retrieves attendance records for a user.
+func (mc *MeetingController) GetUserAttendanceRecords(c *gin.Context) {
+	currentUser, _ := c.Get("user")
+	userID := currentUser.(*models.User).ID
+
+	// Call the meeting service to get attendance records for the user
+	attendance, err := mc.meetingService.GetFullUserAttendanceRecord(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get attendance records for user", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, attendance)
+}

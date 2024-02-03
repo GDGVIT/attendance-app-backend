@@ -435,3 +435,43 @@ func TestMeetingController_GetAttendanceForMeeting(t *testing.T) {
 	w, _ = sendRequest("GET", "/team/1/meetings/1/attendance")
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
+
+// test GetUserAttendanceRecords
+func TestMeetingController_GetUserAttendanceRecords(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mocks.NewMockMeetingService(ctrl)
+
+	r := gin.Default()
+	meetingController := NewMeetingController(mockService)
+
+	r.GET("/user/me/attendance", func(c *gin.Context) {
+		// Set up a user in the context
+		user := &models.User{}
+		user.ID = 1
+		c.Set("user", user)
+
+		// Call the controller function
+		meetingController.GetUserAttendanceRecords(c)
+	})
+
+	// parseMeetingAttendanceResponse parses the response body of GetUserAttendanceRecords
+	parseMeetingAttendanceResponse := func(w *httptest.ResponseRecorder) []models.MeetingAttendanceListResponse {
+		var response []models.MeetingAttendanceListResponse
+		_ = json.NewDecoder(w.Body).Decode(&response)
+		return response
+	}
+
+	// Helper function to send a request and check the response
+	sendRequest := func(method, path string) (*httptest.ResponseRecorder, []models.MeetingAttendanceListResponse) {
+		req, _ := http.NewRequest(method, path, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		return w, parseMeetingAttendanceResponse(w)
+	}
+
+	mockService.EXPECT().GetFullUserAttendanceRecord(uint(1)).Return([]models.MeetingAttendanceListResponse{}, nil)
+	w, _ := sendRequest("GET", "/user/me/attendance")
+	assert.Equal(t, http.StatusOK, w.Code)
+}
