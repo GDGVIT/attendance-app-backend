@@ -42,6 +42,7 @@ type MeetingServiceInterface interface {
 	MarkAttendanceForUserInMeeting(userID, meetingID uint, attendanceTime time.Time, teamid uint) (bool, error)
 	GetAttendanceForMeeting(meetingID, teamID uint) ([]models.MeetingAttendanceListResponse, error)
 	UpcomingUserMeetings(userID uint) ([]models.UserUpcomingMeetingsListResponse, error)
+	GetFullUserAttendanceRecord(userID uint) ([]models.MeetingAttendanceListResponse, error)
 }
 
 // CreateMeeting creates a new meeting in the database.
@@ -346,6 +347,39 @@ func (ms *MeetingService) UpcomingUserMeetings(userID uint) ([]models.UserUpcomi
 	}
 
 	return meetings, nil
+}
+
+// GetFullUserAttendanceRecord retrieves all attendance records for a user across meetings and teams.
+func (ms *MeetingService) GetFullUserAttendanceRecord(userID uint) ([]models.MeetingAttendanceListResponse, error) {
+	// Get all attendance records for the user
+	attendance, err := ms.meetingRepo.GetMeetingAttendancesByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get meeting details for each attendance record, and make array of MeetingAttendanceResponse
+	var attendanceResponse []models.MeetingAttendanceListResponse
+	for _, attendanceRecord := range attendance {
+		meeting, err := ms.meetingRepo.GetMeetingByID(attendanceRecord.MeetingID)
+		if err != nil {
+			return nil, err
+		}
+		team, err := ms.teamRepo.GetTeamByID(meeting.TeamID)
+		if err != nil {
+			return nil, err
+		}
+		attendanceResponse = append(attendanceResponse, models.MeetingAttendanceListResponse{
+			ID:                 attendanceRecord.ID,
+			MeetingID:          attendanceRecord.MeetingID,
+			AttendanceMarkedAt: attendanceRecord.AttendanceMarkedAt,
+			OnTime:             attendanceRecord.OnTime,
+			User:               models.User{},
+			TeamName:           team.Name,
+			MeetingName:        meeting.Title,
+		})
+	}
+
+	return attendanceResponse, nil
 }
 
 // GetMeetingStatsByMeetingID retrieves meeting stats for a given meeting ID. Stats: total attendance, on time attendance, late attendance.

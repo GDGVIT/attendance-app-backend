@@ -450,3 +450,95 @@ func TestMeetingRepository_GetMeetingAttendanceByUserIDAndMeetingID(t *testing.T
 		t.Errorf("GetMeetingAttendanceByUserIDAndMeetingID should have returned an error")
 	}
 }
+
+// test GetMeetingAttendancesByUserID
+func TestMeetingRepository_GetMeetingAttendancesByUserID(t *testing.T) {
+	db, err := test_utils.SetupTestDB()
+	if err != nil {
+		t.Fatalf("Failed to set up test database: %v", err)
+	}
+	defer db.Migrator().DropTable(&models.Meeting{}, &models.MeetingAttendance{})
+
+	// Create the Meeting Repository with the test database
+	mr := NewMeetingRepository()
+	mr.db = db
+
+	// Create a test meeting
+	meeting := models.Meeting{
+		Title:       "Test Meeting",
+		Description: "Test Meeting Description",
+		TeamID:      1,
+		StartTime:   time.Now().Add(time.Hour * 24),
+		Venue:       "Test Venue",
+		Location: models.Location{
+			Latitude:  12.345678,
+			Longitude: 98.765432,
+			Altitude:  0,
+		},
+	}
+
+	// Test CreateMeeting function
+	createdMeeting, err := mr.CreateMeeting(meeting)
+	if err != nil {
+		t.Errorf("CreateMeeting returned an error: %v", err)
+	}
+
+	// Create a test meeting attendance
+	meetingAttendance := models.MeetingAttendance{
+		MeetingID:          createdMeeting.ID,
+		UserID:             1,
+		AttendanceMarkedAt: time.Now(),
+		OnTime:             true,
+	}
+
+	// Another meeting and attendance
+	anotherMeeting := models.Meeting{
+		Title:       "Another Test Meeting",
+		Description: "Another Test Meeting Description",
+		TeamID:      2,
+		StartTime:   time.Now().Add(time.Hour * 24),
+		Venue:       "Another Test Venue",
+		Location: models.Location{
+			Latitude:  12.345678,
+			Longitude: 98.765432,
+			Altitude:  0,
+		},
+	}
+	createdAnotherMeeting, err := mr.CreateMeeting(anotherMeeting)
+	if err != nil {
+		t.Errorf("CreateMeeting returned an error: %v", err)
+	}
+	anotherMeetingAttendance := models.MeetingAttendance{
+		MeetingID:          createdAnotherMeeting.ID,
+		UserID:             1,
+		AttendanceMarkedAt: time.Now(),
+		OnTime:             true,
+	}
+	err = mr.AddMeetingAttendance(anotherMeetingAttendance)
+	if err != nil {
+		t.Errorf("AddMeetingAttendance returned an error: %v", err)
+	}
+
+	// Test AddMeetingAttendance function
+	err = mr.AddMeetingAttendance(meetingAttendance)
+	if err != nil {
+		t.Errorf("AddMeetingAttendance returned an error: %v", err)
+	}
+
+	// Test GetMeetingAttendancesByUserID with a valid user ID
+	_, err = mr.GetMeetingAttendancesByUserID(1)
+	if err != nil {
+		t.Errorf("GetMeetingAttendancesByUserID returned an error: %v", err)
+	}
+	// Test GetMeetingAttendancesByUserID returned correct number of attendances
+	attendances, _ := mr.GetMeetingAttendancesByUserID(1)
+	if len(attendances) != 2 {
+		t.Errorf("Expected 2 attendances, got: %d", len(attendances))
+	}
+
+	// Test GetMeetingAttendancesByUserID with an invalid user ID
+	attendances, _ = mr.GetMeetingAttendancesByUserID(999) // Non-existent user ID
+	if len(attendances) != 0 {
+		t.Errorf("GetMeetingAttendancesByUserID should have returned an empty slice")
+	}
+}

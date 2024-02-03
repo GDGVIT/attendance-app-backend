@@ -76,6 +76,8 @@ type MeetingAttendanceListResponse struct {
 	AttendanceMarkedAt time.Time
 	OnTime             bool
 	User               User
+	MeetingName        string
+	TeamName           string
 }
 
 type UserUpcomingMeetingsListResponse struct {

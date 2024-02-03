@@ -86,6 +86,9 @@ func RegisterRoutes(route *gin.Engine) {
 
 		// Get my team requests, query ?status=accepted/rejected/pending
 		user.GET("/me/requests", middleware.BaseAuthMiddleware(), userController.GetMyRequests)
+
+		// Get past user attendance, TODO: filterable by team
+		user.GET("/me/attendance", middleware.BaseAuthMiddleware(), meetingController.GetUserAttendanceRecords)
 	}
 
 	team := v1.Group("/team")

@@ -777,3 +777,71 @@ func TestMeetingService_UpcomingUserMeetings(t *testing.T) {
 	assert.NotNil(t, meetings)
 	assert.Equal(t, meetingData[0].Title, meetings[0].Meeting.Title)
 }
+
+func TestMeetingService_GetFullUserAttendanceRecord(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockMeetingRepository(ctrl)
+	mockEmailService := mocks.NewMockEmailService(ctrl)
+	mockUserRepo := mocks.NewMockUserRepository(ctrl)
+	mockTeamRepo := mocks.NewMockTeamRepository(ctrl)
+	mockTeamMemberRepo := mocks.NewMockTeamMemberRepository(ctrl)
+
+	meetingService := NewMeetingService(mockRepo, mockEmailService, mockUserRepo, mockTeamRepo, mockTeamMemberRepo)
+
+	// Define test data
+	userID := uint(1)
+	meetingID := uint(2)
+	meeting2ID := uint(3)
+	teamID := uint(3)
+
+	// Mock GetMeetingAttendancesByUserID
+	mockRepo.EXPECT().GetMeetingAttendancesByUserID(userID).Return([]models.MeetingAttendance{
+		{
+			UserID:             userID,
+			MeetingID:          meetingID,
+			AttendanceMarkedAt: time.Now(),
+			OnTime:             true,
+		},
+		{
+			UserID:             userID,
+			MeetingID:          meeting2ID,
+			AttendanceMarkedAt: time.Now(),
+			OnTime:             false,
+		},
+	}, nil)
+
+	// Mock GetMeetingByID
+	mockRepo.EXPECT().GetMeetingByID(meetingID).Return(models.Meeting{
+		TeamID: teamID,
+		Title:  "Sample Meeting",
+	}, nil)
+
+	mockRepo.EXPECT().GetMeetingByID(meeting2ID).Return(models.Meeting{
+		TeamID: teamID,
+		Title:  "Sample Meeting 2",
+	}, nil)
+
+	// Mock GetTeamByID for both invocations
+	for i := 0; i < 2; i++ {
+		mockTeamRepo.EXPECT().GetTeamByID(teamID).Return(models.Team{
+			Name: "Sample Team",
+			// Add other team details as needed
+		}, nil)
+	}
+
+	// Call the method under test
+	attendanceRecords, err := meetingService.GetFullUserAttendanceRecord(userID)
+
+	// Check the results
+	assert.NoError(t, err)
+	assert.NotNil(t, attendanceRecords)
+	assert.Equal(t, 2, len(attendanceRecords))
+	assert.Equal(t, meetingID, attendanceRecords[0].MeetingID)
+	assert.Equal(t, "Sample Team", attendanceRecords[0].TeamName)
+	assert.Equal(t, "Sample Meeting", attendanceRecords[0].MeetingName)
+	assert.Equal(t, meeting2ID, attendanceRecords[1].MeetingID)
+	assert.Equal(t, "Sample Team", attendanceRecords[1].TeamName)
+	assert.Equal(t, "Sample Meeting 2", attendanceRecords[1].MeetingName)
+}
