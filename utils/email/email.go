@@ -47,7 +47,7 @@ func GenericSendMail(subject string, content string, toEmail string, userName st
 	data := RegistrationEmail{
 		Subject: subject,
 		From: EmailAddress{
-			Email: "attapp@anrdhmshr.tech",
+			Email: "nock.noreply@dscvit.com",
 			Name:  "Attendance App",
 		},
 		To: []EmailAddress{
