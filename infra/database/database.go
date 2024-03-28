@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/spf13/viper"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -26,7 +26,7 @@ func DbConnection(DSN string) error {
 		loglevel = logger.Info
 	}
 
-	db, err = gorm.Open(mysql.Open(DSN), &gorm.Config{
+	db, err = gorm.Open(postgres.Open(DSN), &gorm.Config{
 		Logger: logger.Default.LogMode(loglevel),
 	})
 
