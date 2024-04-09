@@ -92,7 +92,7 @@ func SendRegistrationMail(subject string, content string, toEmail string, userID
 	otp := ""
 	if newUser {
 		otp = GenerateOTP(6)
-		content += viper.GetString("FRONTEND_BASE") + "/verify?email=" + toEmail + "&otp=" + otp
+		content += viper.GetString("FRONTEND_BASE") + "/verify?email=" + toEmail + "&otp=" + otp + " . Or, type in the OTP manually: " + otp
 	}
 
 	err := GenericSendMail(subject, content, toEmail, userName)
