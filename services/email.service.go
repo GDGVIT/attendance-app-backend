@@ -93,7 +93,7 @@ func (es *EmailService) GenericSendMail(subject string, content string, toEmail 
 	data := GenericEmail{
 		Subject: subject,
 		From: EmailAddress{
-			Email: "attapp@anrdhmshr.tech",
+			Email: "nock.noreply@dscvit.com",
 			Name:  "Attendance App",
 		},
 		To: []EmailAddress{
